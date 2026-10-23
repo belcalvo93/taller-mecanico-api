@@ -23,7 +23,7 @@
 
 ### Reglas transversales de proceso (valen para TODOS los changes)
 
-- **Ramas y PRs (DD-08, DD-17)**: una rama `feat/<change>` por change; PR a `main`; no se mergea sin la aprobación de **al menos un compañero**. Commits chicos y en español con el nombre del change. Prerrequisito: `main` todavía no tiene ningún commit, así que el commit inicial con la fundación (`CLAUDE.md`, `knowledge-base/`, `openspec/`, `CHANGES.md`, `docs/`) tiene que existir **antes** de abrir la primera rama.
+- **Ramas y PRs (DD-08, DD-17)**: una rama `feat/<change>` por change; PR a `main`; no se mergea sin la aprobación de **al menos un compañero**. Commits chicos y en español con el nombre del change. La fundación ya está en main (commit f01d452); cada change arranca su rama feat/<change> desde main actualizado.
 - **Bitácora (DD-17, AP-07)**: `docs/bitacora.md` (la crea `infra-base`) con **una sección por integrante**; por cada entrada: **fecha, qué le pidió al agente, qué corrigió a mano y por qué**. Cada uno la completa en el PR de su change; `casos-y-entrega` la revisa al final. Es la evidencia para la demo en vivo (los 5 trabajaron y revisaron).
 - **Un solo dueño de los modelos**: sólo `esquema-y-migraciones` escribe `app/modules/<mod>/models.py` y las migraciones. Los demás changes **no tocan modelos**; si necesitan una columna, se pide a Belén y se agrega ahí (se pueden agregar columnas, no quitar ni renombrar).
 - **Cada módulo escribe lo suyo (DD-12)**: `repository.py`, `unit_of_work.py`, `schemas.py`, `service.py`, `router.py` y los `.http` de sus casos los escribe el change de ese módulo.
