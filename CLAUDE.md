@@ -46,3 +46,5 @@ Módulos: `health` (sólo router.py), `usuarios` (Usuario, AsignacionRol, Intent
 - Antes de archivar un change: correr toda la suite y verificar contra cada regla RN y cada caso C que el change toca.
 - Commits chicos y en español, con el nombre del change.
 - Equipo de 5 (Belén, Elías, Hernán, Bruno, Joaquín): una rama por change `feat/<change>`, PR a main con revisión de un compañero. Los modelos los escribe sólo el change esquema-y-migraciones.
+
+Ver también @AGENTS.md (mapa de la knowledge-base, roadmap y forma de trabajo).
