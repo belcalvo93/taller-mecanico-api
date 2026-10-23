@@ -1,0 +1,185 @@
+{
+  "version": 4,
+  "step": "find-skill",
+  "owner": "active-orchestrator",
+  "discovery": {
+    "created_by": "discovery-research",
+    "sources": [],
+    "competitors": [],
+    "problema": "API asincrónica para un taller mecánico (órdenes de trabajo, stock de repuestos y control de acceso por roles); TP de Programación III (UTN) que integra los capítulos 1 a 6 y se evalúa con una demo en vivo.",
+    "usuarios": [
+      "RECEPCION: da de alta clientes y vehículos y abre órdenes",
+      "MECANICO: toma la orden, la repara y la termina",
+      "ADMIN: mantiene el catálogo de repuestos, repone stock y administra personal y roles",
+      "CLIENTE: se auto-registra y consulta sus vehículos y órdenes"
+    ],
+    "casos_de_uso": [
+      "Como cliente, quiero registrarme e iniciar sesión (cookie HttpOnly) para consultar mis vehículos y órdenes",
+      "Como recepción, quiero abrir una orden con sus ítems para registrar el ingreso de un vehículo",
+      "Como mecánico, quiero terminar una orden para que se descuente el stock en una sola transacción",
+      "Como dueño de un vehículo, quiero cancelar mi orden pendiente",
+      "Como administrador, quiero revocar un rol y que la sesión abierta pierda el permiso en la petición siguiente",
+      "Como personal con contraseña provisoria, quiero cambiarla (cambio obligatorio) y que las sesiones anteriores dejen de valer"
+    ],
+    "funcionalidades_necesarias": [
+      "Los 8 ejercicios, RN-01 a RN-20 y los endpoints de referencia de docs/consigna-tp.md",
+      "seed.py con los datos iniciales",
+      "Dos migraciones de Alembic: autogenerate y trigger de sólo agregado escrita a mano",
+      "Archivos .http de C-01 a C-19 y test/solo_agregado.sql",
+      "README con los pasos para levantar el proyecto desde cero",
+      "Evidencias de C-14 (psql con los rechazos del trigger) y C-15 (consultas del detalle de una orden con 2 y 4 ítems)"
+    ],
+    "funcionalidades_opcionales": [],
+    "reglas_de_negocio": [
+      "RN-01 a RN-20 de docs/consigna-tp.md",
+      "Las 17 reglas 'que NUNCA se rompen' del CLAUDE.md del proyecto",
+      "Aclaraciones del profesor: las tablas appendOnly no tienen endpoint propio y se escriben dentro del service de la operación que las genera",
+      "Aclaraciones del profesor: estado_orden funciona como un enum, sin endpoints de crear, editar ni borrar, precargado por seed.py y de sólo lectura",
+      "Aclaraciones del profesor: la clave de firma del JWT es FIJA y vive en el .env, nunca se genera al arrancar",
+      "Aclaraciones del profesor: el commit sólo lo hace el Unit of Work, ni el service ni los repositorios (usan flush)",
+      "Aclaraciones del profesor: SQL_ECHO=true para ver las consultas en consola",
+      "Aclaraciones del profesor: probar con Swagger alcanza, igual se entregan los .http de C-01 a C-19",
+      "Aclaraciones del profesor: la evaluación es una demo en vivo, tiene que quedar evidencia (PRs con revisión y bitácora) de que los 5 trabajaron y revisaron",
+      "Aclaraciones del profesor: no buscar soluciones similares, la knowledge-base se arma sólo desde docs/consigna-tp.md"
+    ],
+    "integraciones": [
+      "PostgreSQL (única dependencia externa)",
+      "Aviso al cliente simulado con BackgroundTasks y asyncio.sleep(0.5); sin colas ni Redis"
+    ],
+    "restricciones": [
+      "Entrega el viernes 30/10/2026; clases de trabajo el 23/10, 27/10 y 30/10",
+      "Equipo de 5 (Belén, Elías, Hernán, Bruno, Joaquín) en 4 olas, una rama feat/<change> por change",
+      "Cada PR necesita la aprobación de al menos un compañero antes del merge",
+      "PostgreSQL 16 o superior instalado localmente en cada máquina, sin Docker; base de desarrollo y base de tests (taller_test) separadas en el mismo servidor, creada con alembic upgrade head",
+      "Stack fijado en CLAUDE.md (asyncpg confirmado como driver) con versiones mínimas",
+      "Alcance estrictamente la consigna, sin extras",
+      "Reparto: Belén → infra-base, esquema-y-migraciones, casos-y-entrega; Elías → nucleo-repositorios-uow, ordenes; Hernán → autenticacion, autorizacion-y-roles; Bruno → repuestos-y-stock; Joaquín → clientes-y-vehiculos",
+      "Olas: 1 = infra-base, esquema-y-migraciones, nucleo-repositorios-uow; 2 = autenticacion, autorizacion-y-roles, clientes-y-vehiculos, repuestos-y-stock; 3 = ordenes; 4 = casos-y-entrega",
+      "Las tareas de cierre (README, evidencias C-14 y C-15, consolidar los .http) van en casos-y-entrega; cada uno escribe los .http de sus casos en su change"
+    ],
+    "riesgos": [
+      "Que el esquema no levante (Alembic, índices parciales, trigger, downgrade): si alembic upgrade head falla, el profe no corrige",
+      "La ola 3 (ordenes) está en el camino crítico: depende de autenticación, clientes y repuestos",
+      "Coordinación de 5 personas en paralelo; esquema-y-migraciones bloquea a todos",
+      "Plazo de una semana: riesgo de llegar sin evidencias C-14/C-15 ni README",
+      "Demo en vivo: cada integrante debe entender y poder explicar lo que escribió, con evidencia de revisión (PRs y bitácora)"
+    ],
+    "preguntas_abiertas": []
+  },
+  "kb": {
+    "created_by": "kb-creator",
+    "source": "ingest",
+    "discovery": {
+      "problem": "API asincrónica para un taller mecánico (órdenes de trabajo, stock de repuestos y control de acceso por roles); TP integrador de Programación III (UTN) evaluado con demo en vivo.",
+      "system_type": "api",
+      "domain": "taller mecánico (órdenes de trabajo, stock y acceso)",
+      "scale": "team (inferred, low confidence)",
+      "stack": "Python 3.12 + FastAPI 0.111 + SQLModel 0.0.24 + SQLAlchemy 2.0 async + asyncpg + PostgreSQL 16+ + Alembic 1.13 + pydantic-settings + bcrypt + PyJWT",
+      "needs_infra": true
+    },
+    "files": [
+      "knowledge-base/01_vision_y_objetivos.md",
+      "knowledge-base/02_descripcion_general.md",
+      "knowledge-base/03_actores_y_roles.md",
+      "knowledge-base/04_modelo_de_datos.md",
+      "knowledge-base/05_reglas_de_negocio.md",
+      "knowledge-base/06_funcionalidades.md",
+      "knowledge-base/07_flujos_principales.md",
+      "knowledge-base/08_arquitectura_propuesta.md",
+      "knowledge-base/09_decisiones_y_supuestos.md",
+      "knowledge-base/10_preguntas_abiertas.md",
+      "knowledge-base/README.md"
+    ]
+  },
+  "roadmap": {
+    "created_by": "roadmap-generator",
+    "changes_file": "CHANGES.md",
+    "changes": [
+      "CH-01",
+      "CH-02",
+      "CH-03",
+      "CH-04",
+      "CH-05",
+      "CH-06",
+      "CH-07",
+      "CH-08",
+      "CH-09"
+    ]
+  },
+  "skills": {
+    "created_by": "find-skill",
+    "recommended": [
+      {
+        "name": "fastapi",
+        "repo": "fastapi/fastapi",
+        "installs": "13.2K",
+        "install_cmd": "npx skills add fastapi/fastapi --skill fastapi -g",
+        "reason": "Skill oficial de FastAPI: routers, dependencias, Pydantic y buenas prácticas del framework base de la API."
+      },
+      {
+        "name": "fastapi-expert",
+        "repo": "jeffallan/claude-skills",
+        "installs": "6.1K",
+        "install_cmd": "npx skills add jeffallan/claude-skills --skill fastapi-expert -g",
+        "reason": "FastAPI async con SQLAlchemy 2.0, JWT y pytest-asyncio: cubre casi todo el stack de una sola vez."
+      },
+      {
+        "name": "python-testing-patterns",
+        "repo": "wshobson/agents",
+        "installs": "36.8K",
+        "install_cmd": "npx skills add wshobson/agents --skill python-testing-patterns -g",
+        "reason": "Fixtures, mocks y patrones de pytest para el ciclo TDD estricto."
+      },
+      {
+        "name": "tdd",
+        "repo": "mattpocock/skills",
+        "installs": "1.1M",
+        "install_cmd": "npx skills add mattpocock/skills --skill tdd -g",
+        "reason": "Disciplina red-green-refactor, alineada con el TDD estricto del flujo SDD."
+      },
+      {
+        "name": "async-python-patterns",
+        "repo": "wshobson/agents",
+        "installs": "18K",
+        "install_cmd": "npx skills add wshobson/agents --skill async-python-patterns -g",
+        "reason": "Patrones de asyncio (sesiones async, gather, tareas) útiles para services, UoW y BackgroundTasks."
+      },
+      {
+        "name": "auth-implementation-patterns",
+        "repo": "wshobson/agents",
+        "installs": "19.3K",
+        "install_cmd": "npx skills add wshobson/agents --skill auth-implementation-patterns -g",
+        "reason": "Patrones de JWT, cookies HttpOnly, revocación de sesión y control de acceso por roles."
+      },
+      {
+        "name": "supabase-postgres-best-practices",
+        "repo": "supabase/agent-skills",
+        "installs": "457.3K",
+        "install_cmd": "npx skills add supabase/agent-skills --skill supabase-postgres-best-practices -g",
+        "reason": "Buenas prácticas de PostgreSQL: índices (incl. parciales), constraints y rendimiento de consultas."
+      },
+      {
+        "name": "postgresql-table-design",
+        "repo": "wshobson/agents",
+        "installs": "27.7K",
+        "install_cmd": "npx skills add wshobson/agents --skill postgresql-table-design -g",
+        "reason": "Diseño de esquema PostgreSQL: tipos, claves, constraints; útil para el modelo y el trigger append-only."
+      },
+      {
+        "name": "sqlalchemy-alembic-expert-best-practices-code-review",
+        "repo": "wispbit-ai/skills",
+        "installs": "2K",
+        "install_cmd": "npx skills add wispbit-ai/skills --skill sqlalchemy-alembic-expert-best-practices-code-review -g",
+        "reason": "Revisión de modelos SQLAlchemy y migraciones Alembic (upgrade/downgrade); clave porque el riesgo principal es que alembic upgrade head falle."
+      },
+      {
+        "name": "security-and-hardening",
+        "repo": "addyosmani/agent-skills",
+        "installs": "68.1K",
+        "install_cmd": "npx skills add addyosmani/agent-skills --skill security-and-hardening -g",
+        "reason": "Hardening y OWASP para APIs: validación de entrada, manejo de secretos y errores."
+      }
+    ],
+    "installed": []
+  }
+}
