@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "step": "find-skill",
+  "step": "done",
   "owner": "active-orchestrator",
   "discovery": {
     "created_by": "discovery-research",
@@ -181,5 +181,39 @@
       }
     ],
     "installed": []
+  },
+  "registry": {
+    "created_by": "skill-registry",
+    "path": ".atl/skill-registry.md",
+    "skills": [
+      "active-orchestrator",
+      "agents-md-generator",
+      "discovery-research",
+      "find-skills",
+      "kb-creator",
+      "roadmap-generator",
+      "skill-creator",
+      "web-scraper",
+      "frontend-design"
+    ],
+    "conventions": [
+      "CLAUDE.md",
+      "docs/consigna-tp.md",
+      "CHANGES.md",
+      "knowledge-base/README.md",
+      "discovery/discovery.md",
+      "openspec/config.yaml",
+      "~/.claude/CLAUDE.md",
+      ".claude/commands/opsx/"
+    ],
+    "engram": true
+  },
+  "agents": {
+    "created_by": "agent-instruction",
+    "files": [
+      "CLAUDE.md",
+      "AGENTS.md"
+    ],
+    "reglas_applied": []
   }
 }
