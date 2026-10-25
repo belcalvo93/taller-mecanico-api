@@ -36,12 +36,12 @@
 
 ## 4. Motor, fábrica de sesiones y get_session (commit `feat(infra-base): motor async, fábrica de sesiones y get_session`)
 
-- [ ] 4.1 ROJO: `tests/test_database.py`: `crear_motor(settings)` con `DB_POOL_SIZE=2` y `SQL_ECHO=True` devuelve un motor con `engine.pool.size() == 2`, `engine.echo is True` y dialecto/driver `postgresql`/`asyncpg`, sin conectarse. Ejecutar: falla porque `app.core.database` no existe
-- [ ] 4.2 VERDE: `app/core/database.py` con `crear_motor` (design D2). Ejecutar: verde. TRIANGULAR con `DB_POOL_SIZE=5` y `SQL_ECHO=False`: verde
-- [ ] 4.3 ROJO→VERDE fábrica: `crear_fabrica_sesiones(engine)` crea sesiones `AsyncSession` (de SQLModel) con `sync_session.expire_on_commit is False`; dos llamadas a la fábrica dan sesiones distintas. Ejecutar: verdes
-- [ ] 4.4 ROJO→VERDE `get_session`: con una app mínima de test cuyo `app.state.session_factory` es una fábrica real, una ruta que usa `Depends(get_session)` recibe una sesión de esa fábrica; tras la respuesta la sesión está cerrada. TRIANGULAR: una ruta que lanza una excepción también deja la sesión cerrada, y dos peticiones reciben sesiones distintas. Ejecutar: verdes
-- [ ] 4.5 REFACTOR (tipos y docstrings cortos que citan la regla 7); `pytest tests/test_database.py` verde tras cada paso
-- [ ] 4.6 Commit del grupo 4
+- [x] 4.1 ROJO: `tests/test_database.py`: `crear_motor(settings)` con `DB_POOL_SIZE=2` y `SQL_ECHO=True` devuelve un motor con `engine.pool.size() == 2`, `engine.echo is True` y dialecto/driver `postgresql`/`asyncpg`, sin conectarse. Ejecutar: falla porque `app.core.database` no existe
+- [x] 4.2 VERDE: `app/core/database.py` con `crear_motor` (design D2). Ejecutar: verde. TRIANGULAR con `DB_POOL_SIZE=5` y `SQL_ECHO=False`: verde
+- [x] 4.3 ROJO→VERDE fábrica: `crear_fabrica_sesiones(engine)` crea sesiones `AsyncSession` (de SQLModel) con `sync_session.expire_on_commit is False`; dos llamadas a la fábrica dan sesiones distintas. Ejecutar: verdes
+- [x] 4.4 ROJO→VERDE `get_session`: con una app mínima de test cuyo `app.state.session_factory` es una fábrica real, una ruta que usa `Depends(get_session)` recibe una sesión de esa fábrica; tras la respuesta la sesión está cerrada. TRIANGULAR: una ruta que lanza una excepción también deja la sesión cerrada, y dos peticiones reciben sesiones distintas. Ejecutar: verdes
+- [x] 4.5 REFACTOR (tipos y docstrings cortos que citan la regla 7); `pytest tests/test_database.py` verde tras cada paso
+- [x] 4.6 Commit del grupo 4
 
 ## 5. Lifespan, main.py y nada al importar (commit `feat(infra-base): lifespan con motor en app.state, hash ficticio y dispose`)
 
