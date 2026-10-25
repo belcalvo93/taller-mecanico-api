@@ -23,16 +23,16 @@
 - [x] 2.5 ROJO→VERDE parámetros operativos: defaults (`ACCESS_TOKEN_EXPIRE_SECONDS=1800`, `COOKIE_SECURE=False`, `BCRYPT_COST=12`, `BCRYPT_MAX_CONCURRENT=4`, `DB_POOL_SIZE=5`, `SQL_ECHO=False`, `JWT_ALGORITHM="HS256"`, `POSTGRES_HOST="localhost"`, `POSTGRES_PORT=5432`); TRIANGULAR con valores del entorno (`SQL_ECHO=true`, `COOKIE_SECURE=true`, `BCRYPT_COST=4`, `DB_POOL_SIZE=2` con sus tipos), fuera de rango (`BCRYPT_COST=3`, `DB_POOL_SIZE=0` fallan) y `POSTGRES_DB` faltante falla. Ejecutar: verdes
 - [x] 2.6 ROJO→VERDE prioridad: con un `.env` temporal (`tmp_path`) que dice `POSTGRES_DB=taller` y el entorno con `taller_test`, gana `taller_test`; con sólo el `.env` temporal, se toman sus valores. Ejecutar: verdes
 - [x] 2.7 REFACTOR: agrupar campos por tema con comentarios breves, extraer constantes de límites; ejecutar `pytest tests/test_config.py` tras cada cambio: verdes
-- [ ] 2.8 **[checkpoint]** Mostrar a Belén `config.py` y los tests; tras su OK, commit del grupo 2
+- [x] 2.8 **[checkpoint]** Mostrar a Belén `config.py` y los tests; tras su OK, commit del grupo 2
 
 ## 3. env.example y .env local (commit `feat(infra-base): env.example con todas las variables y sin secretos`)
 
-- [ ] 3.1 ROJO: `tests/test_env_example.py`: las claves de `env.example` son exactamente los 13 campos de `Settings` (sin `DATABASE_URL`, sin claves de más); `POSTGRES_PASSWORD` y `JWT_SECRET_KEY` tienen valor vacío. Ejecutar: falla porque el archivo no existe
-- [ ] 3.2 VERDE: escribir `env.example` (orden de `08_arquitectura_propuesta.md`, valores de ejemplo no secretos, `SQL_ECHO=true`, comentario con el comando para generar la clave: `python -c "import secrets; print(secrets.token_urlsafe(64))"`). Ejecutar: verde
-- [ ] 3.3 TRIANGULAR: los valores no secretos de `env.example` son válidos para `Settings` (construir `Settings(_env_file=None)` con esos valores más secretos de prueba generados en el test) y, con los secretos tal como vienen en `env.example` (vacíos), la construcción falla. Ejecutar: verdes
-- [ ] 3.4 Crear `.env` (NO versionado) copiando `env.example` con `POSTGRES_USER=taller`, `POSTGRES_DB=taller`, `POSTGRES_HOST=localhost`, `POSTGRES_PORT=5432`; generar `JWT_SECRET_KEY` UNA sola vez con `secrets.token_urlsafe(64)` escribiéndola directo en el archivo (sin imprimirla); `POSTGRES_PASSWORD`: pedírsela a Belén o que ella la escriba en el `.env` (no repetirla en el chat). Verificar con `.venv/Scripts/python -c "from app.core.config import get_settings; get_settings()"` que la config carga (sin imprimir secretos)
-- [ ] 3.5 Verificar que `.env` no se commitea: `git check-ignore .env` lo devuelve y `git status --porcelain` no lo lista
-- [ ] 3.6 Commit del grupo 3 (sólo `env.example` y el test)
+- [x] 3.1 ROJO: `tests/test_env_example.py`: las claves de `env.example` son exactamente los 13 campos de `Settings` (sin `DATABASE_URL`, sin claves de más); `POSTGRES_PASSWORD` y `JWT_SECRET_KEY` tienen valor vacío. Ejecutar: falla porque el archivo no existe
+- [x] 3.2 VERDE: escribir `env.example` (orden de `08_arquitectura_propuesta.md`, valores de ejemplo no secretos, `SQL_ECHO=true`, comentario con el comando para generar la clave: `python -c "import secrets; print(secrets.token_urlsafe(64))"`). Ejecutar: verde
+- [x] 3.3 TRIANGULAR: los valores no secretos de `env.example` son válidos para `Settings` (construir `Settings(_env_file=None)` con esos valores más secretos de prueba generados en el test) y, con los secretos tal como vienen en `env.example` (vacíos), la construcción falla. Ejecutar: verdes
+- [x] 3.4 Crear `.env` (NO versionado) copiando `env.example` con `POSTGRES_USER=taller`, `POSTGRES_DB=taller`, `POSTGRES_HOST=localhost`, `POSTGRES_PORT=5432`; generar `JWT_SECRET_KEY` UNA sola vez con `secrets.token_urlsafe(64)` escribiéndola directo en el archivo (sin imprimirla); `POSTGRES_PASSWORD`: pedírsela a Belén o que ella la escriba en el `.env` (no repetirla en el chat). Verificar con `.venv/Scripts/python -c "from app.core.config import get_settings; get_settings()"` que la config carga (sin imprimir secretos)
+- [x] 3.5 Verificar que `.env` no se commitea: `git check-ignore .env` lo devuelve y `git status --porcelain` no lo lista
+- [x] 3.6 Commit del grupo 3 (sólo `env.example` y el test)
 
 ## 4. Motor, fábrica de sesiones y get_session (commit `feat(infra-base): motor async, fábrica de sesiones y get_session`)
 
