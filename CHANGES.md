@@ -177,7 +177,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 > Dos frentes en paralelo después de CH-01: Belén con el esquema (CH-02) y Elías con el núcleo genérico (CH-03). No se bloquean porque el núcleo se prueba con un modelo mínimo de test (DD-12).
 
 ### [CH-01] `infra-base`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Belén · ola 1 (vie 23/10)
 - **Scope**: esqueleto ejecutable del proyecto, sin lógica de negocio
   - Estructura del proyecto según `08_arquitectura_propuesta.md`: `main.py`, `app/core/`, `app/modules/{health,usuarios,clientes,repuestos,ordenes}/`, `migrations/`, `test/`, `tests/`, `docs/`

@@ -65,7 +65,7 @@
 - [x] 6.5 ROJO→VERDE ready 503 base caída: app arrancada con `POSTGRES_PORT` de un puerto cerrado → 503 con exactamente `{"estado": "no disponible", "base": "no disponible"}`, en menos de ~4 s. Ejecutar: verde
 - [x] 6.6 TRIANGULAR 503: contraseña incorrecta contra la base real → 503 con el mismo cuerpo; base inexistente (`POSTGRES_DB=no_existe_test`) → 503; y un caso de demora (monkeypatch de la constante de límite a un valor mínimo con una ejecución que no termina) → 503. En los tres, el cuerpo no contiene `asyncpg`, `Traceback`, `password`, el host ni la contraseña usada. Ejecutar: verdes
 - [x] 6.7 REFACTOR: constante `TIEMPO_MAXIMO_READY_SEGUNDOS`, cuerpos como constantes del router, `logger.warning` con sólo el nombre de la clase de la excepción; suite completa verde
-- [ ] 6.8 Commit del grupo 6
+- [x] 6.8 Commit del grupo 6
 
 ## 7. Base de tests con Alembic (commit `test(infra-base): fixture de la base taller_test con alembic upgrade head`)
 
@@ -73,13 +73,13 @@
 - [x] 7.2 VERDE: fixture `base_migrada` en `tests/conftest.py` (scope `session`, sincrónica; guarda `_test`; skip sin `alembic.ini`; `subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], env=..., check=True)`; nunca `create_all`), con un comentario que dice que se ejercita de punta a punta con CH-02 y que el `env.py` de Alembic debe tomar la URL de `get_settings()` (design D6). Ejecutar: verdes
 - [x] 7.3 TRIANGULAR estructura: `app.core` y los cinco `app.modules.<módulo>` se importan; `app/modules/health/` sólo tiene `__init__.py` y `router.py`; `pytest --collect-only -q` no recolecta nada de `test/`. Ejecutar: verdes
 - [x] 7.4 REFACTOR de `conftest.py` (constante `BASE_DE_TESTS`, orden de fixtures); suite completa verde
-- [ ] 7.5 Commit del grupo 7
+- [x] 7.5 Commit del grupo 7
 
 ## 8. Bitácora (commit `docs(infra-base): bitácora del equipo`)
 
 - [x] 8.1 Crear `docs/bitacora.md` con una sección por integrante (Belén, Elías, Hernán, Bruno, Joaquín) y la plantilla de entrada (fecha, qué le pidió al agente, qué corrigió a mano y por qué). Verificar que están las cinco secciones y los cuatro campos
 - [x] 8.2 Redactar el borrador de la entrada de Belén para CH-01 (fecha, pedido al agente, versiones instaladas en 3.14 y cualquier piso de `requirements.txt` que se haya subido, decisiones D1–D9 no obvias) para que ella la revise y complete lo que corrigió a mano
-- [ ] 8.3 Commit del grupo 8
+- [x] 8.3 Commit del grupo 8
 
 ## 9. Verificación integral (sin commit)
 
@@ -87,7 +87,7 @@
 - [x] 9.2 Levantar el servidor (`.venv/Scripts/fastapi dev main.py` o `uvicorn main:app`) y verificar a mano: `curl -i localhost:8000/health/live` → 200; `/health/ready` → 200 y el `SELECT 1` en consola con `SQL_ECHO=true`; con PostgreSQL detenido (o `POSTGRES_PORT` cambiado en el entorno), `/health/ready` → 503 con el cuerpo fijo; al cortar el servidor no hay errores de apagado
 - [x] 9.3 Arrancar con `JWT_SECRET_KEY=` vacía en el entorno y verificar que el servidor no levanta y el error nombra la variable sin mostrar valores
 - [x] 9.4 Revisar contra las reglas 7, 8 y 17 de `CLAUDE.md` y RN-18: `grep` de `create_async_engine`, `Settings(` y `get_settings(` fuera de funciones; ningún secreto en archivos versionados (un script lee la contraseña y la clave del `.env` sin imprimirlas y corre `git grep -F` con cada una: sin coincidencias); todos los handlers `async def`
-- [ ] 9.5 Confirmar el alcance: no hay modelos, `alembic.ini`, `migrations/`, repositorios, UoW, `security.py` ni `dependencies.py`; `git check-ignore .env` OK y `git status` limpio
+- [x] 9.5 Confirmar el alcance: no hay modelos, `alembic.ini`, `migrations/`, repositorios, UoW, `security.py` ni `dependencies.py`; `git check-ignore .env` OK y `git status` limpio
 
 ## Workflow follow-up
 
