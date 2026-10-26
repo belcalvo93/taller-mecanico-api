@@ -7,6 +7,7 @@ from fastapi import APIRouter, FastAPI
 
 from app.core.config import Settings, get_settings
 from app.core.database import crear_fabrica_sesiones, crear_motor
+import app.modules.modelos  # noqa: F401  (registra los 13 mapeos; sin esto las relaciones entre módulos no se resuelven)
 from app.modules.health.router import router as health_router
 
 
