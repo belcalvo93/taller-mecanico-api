@@ -51,6 +51,28 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 - **D8:** `env.example` lista las 13 variables con los dos secretos vacíos; el `.env` real no se versiona y la clave JWT se genera una sola vez.
 - **D9:** CH-01 no crea `migrations/` ni `alembic.ini` (`alembic init -t async` de CH-02 falla si el directorio existe).
 
+### 2026-10-25 · CH-02 esquema-y-migraciones
+- **Fecha:** 2026-10-25
+- **Qué le pidió al agente:** implementar `/opsx:apply esquema-y-migraciones` con TDD estricto y checkpoints de aprobación (modelos, migración 1, migración 2, seed). Sin commits del agente; los hago yo.
+- **Qué corrigió a mano y por qué:**
+  - Revisé línea por línea la migración 0001 contra la consigna (13 tablas, sin Enum de PostgreSQL, índices parciales, FK al catálogo) y agregué el comentario de lectura.
+  - Revisé la migración 0002 y pedí reemplazar los f-strings por SQL literal para cumplir la regla 17; agregué el comentario de lectura.
+  - Revisé seed.py contra los datos iniciales de la consigna y los ids del ejemplo de respuesta (vehículo 2 = AC456EF, repuestos 2 y 4, usuario 3 = recepción).
+  - Pedí que el agente no hiciera commits ni agregara líneas de atribución; los commits los hice yo.
+
+**Notas de la sesión**
+- Las tareas 2.7 y 2.8 pasaron sin rojo natural porque el código ya existía; 2.8 se verificó con una mutación (quitar `lazy="raise"` de `Vehiculo.cliente` hizo fallar el test).
+- **Aviso para CH-04, CH-06 y CH-07:** los nombres de las FK no están en la metadata (`fk.name` es `None`; se asignan al generar el DDL). Para traducir `IntegrityError` a 409 usen el nombre del constraint que viene en el error de PostgreSQL (asyncpg `constraint_name`). Los nombres de UNIQUE, CHECK e índices sí están en la metadata.
+- Para poder correr la suite sin aplicar una migración que todavía espera aprobación, `tests/conftest.py` acepta la variable `ALEMBIC_DESTINO_TESTS` (por defecto `head`). Ejemplo antes de aprobar 0002: `ALEMBIC_DESTINO_TESTS=0001 .venv/Scripts/python -m pytest`.
+- **Corrección de Belén en 0002 (regla 17):** el agente había escrito los `CREATE TRIGGER` y `DROP TRIGGER` con f-strings sobre una tupla de tablas. Belén pidió SQL literal: ahora hay tres `CREATE TRIGGER` y tres `DROP TRIGGER IF EXISTS` completos, sin interpolación. Quedó un test (`test_ninguna_migracion_arma_sql_por_interpolacion`, con un detector por AST de f-strings, `.format`, `%` y `+` sobre texto) que falla si una migración vuelve a armar SQL así.
+- **Decisión (RN-15):** el trigger de sólo agregado es `FOR EACH STATEMENT` y rechaza siempre `UPDATE` y `DELETE` sobre las 3 tablas (`historial_estado_orden`, `movimiento_stock`, `historial_precio_repuesto`), aunque no coincida ninguna fila. `TRUNCATE` queda permitido a propósito: la consigna exige que `seed.py` vacíe las tablas, y lo hace con `TRUNCATE ... RESTART IDENTITY CASCADE`. La aplicación nunca usa `TRUNCATE`, así que para la API las tablas siguen siendo de sólo agregado.
+- **Pendiente para CH-08:** C-13 necesita una orden TERMINADA (para el 409) y el seed no trae ninguna. En el `.http` se obtiene terminando la orden 2 después de reponer el stock de bujías.
+- **Tests del seed:** `tests/test_seed.py` deja las 13 tablas vacías al terminar (TRUNCATE en la fixture), porque otros tests (`test_esquema.py`, `test_solo_agregado.py`) esperan una base sin datos. Es un ajuste respecto de la idea del design, que decía que quedaba sembrada.
+
+**Datos del seed aprobados** (Checkpoint 4, tal cual `design.md`): usuarios 1 a 7 (admin, admin2, recepcion, mecanico, mecanico2, cliente, nuevo) con contraseñas de prueba sólo en `seed.py`; Laura (usuario 6, documento 30111222) con los vehículos AB123CD y AC456EF, y Jorge Gómez (sin usuario, documento 25333444) con AD789GH; repuestos 1 FIL-001, 2 FRE-010, 3 BUJ-100 (bujía de encendido, 6500.00, stock 2), 4 ACE-530; orden 1 PENDIENTE (56500.00) y orden 2 EN_REPARACION con 4 bujías cuando hay 2 (26000.00). Los ids de usuarios y repuestos salen del orden en que los lista la consigna y quedan fijados por un test.
+
+**Decisiones del design aprobadas:** D4, `asignacion_rol.otorgada_por` es FK a `usuario.id` (NULL = lo otorgó el sistema); D5, relaciones en los dos extremos con `lazy="raise"` (hay que precargar con `selectinload`/`joinedload`); D6, el registro `app/modules/modelos.py` y su import en `main.py`; D9, trigger por sentencia y `TRUNCATE` permitido (ver arriba). Además: `intento_acceso.ip` es texto y las revisiones se llaman `0001` y `0002`.
+
 ## Elías
 
 _(sin entradas todavía)_
@@ -72,3 +94,6 @@ _(sin entradas todavía)_
 - Cada integrante crea su propio `.env` a partir de `env.example`, su usuario de PostgreSQL y las bases `taller` y `taller_test`.
 - Documentar cómo generar la clave de firma (`python -c "import secrets; print(secrets.token_urlsafe(64))"`) y que no se comparte ni se versiona.
 - Avisar a Hernán (CH-04) del contrato `app.state.hash_ficticio` / `app.state.bcrypt_semaforo` y del cambio de bcrypt 5.x con más de 72 bytes.
+- (CH-02) Alembic y `python seed.py` se corren **desde la raíz del repo**: el `.env` se lee relativo al directorio actual y, si no lo encuentra, falla con un error de configuración (no deja un esquema a medias). Orden de arranque: `alembic upgrade head` y después `python seed.py`.
+- (CH-02) Captura del caso C-14: con la base migrada y sembrada, `psql -U taller -d taller -f test/solo_agregado.sql` muestra los siete errores (seis del trigger de sólo agregado y uno de la FK `fk_orden_trabajo_estado_estado_orden`). El texto del último error depende del idioma del servidor.
+- (CH-02) Los tests dejan `taller_test` vacía; si se corre `seed.py` a mano sobre `taller_test`, hay que vaciarla antes de correr la suite (o volver a correrla desde `alembic downgrade base` y `upgrade head`).
