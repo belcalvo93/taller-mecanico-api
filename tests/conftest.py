@@ -155,3 +155,37 @@ async def sembrada(motor, monkeypatch, vaciar_al_terminar):
     get_settings.cache_clear()
     await seed.sembrar(motor, get_settings())
     return motor
+
+
+# --- Esquema de prueba del núcleo (CH-03, design D6) ---------------------------
+from sqlalchemy.schema import CreateTable  # noqa: E402
+
+from app.core.database import crear_fabrica_sesiones  # noqa: E402
+from tests.nucleo_modelos import BasePrueba  # noqa: E402
+
+
+@pytest.fixture
+async def esquema_nucleo(motor):
+    """Esquema `nucleo_prueba` con las dos tablas de prueba; se borra entero al terminar.
+
+    No usa create_all: crea cada tabla con CreateTable de la metadata PROPIA de
+    los modelos de prueba (la de la app sigue saliendo sólo de Alembic).
+    """
+    async with motor.begin() as c:
+        await c.execute(text("DROP SCHEMA IF EXISTS nucleo_prueba CASCADE"))
+        await c.execute(text("CREATE SCHEMA nucleo_prueba"))
+        for tabla in BasePrueba.metadata.sorted_tables:
+            await c.execute(CreateTable(tabla))
+            for indice in tabla.indexes:
+                await c.run_sync(indice.create)
+    try:
+        yield
+    finally:
+        async with motor.begin() as c:
+            await c.execute(text("DROP SCHEMA IF EXISTS nucleo_prueba CASCADE"))
+
+
+@pytest.fixture
+def sesiones(motor):
+    """La fábrica real de la app (expire_on_commit=False) sobre el motor del test."""
+    return crear_fabrica_sesiones(motor)
