@@ -1,0 +1,22 @@
+# C-04 — Anti-enumeración: correo existente con contraseña mala vs correo inexistente (RN-09)
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+# Comparar el tiempo de respuesta de ambas: debe ser parecido (las dos ejecutan bcrypt,
+# una contra el hash real y otra contra el hash ficticio calculado en el lifespan).
+
+@base = http://localhost:8000
+
+### 1) Correo existente, contraseña incorrecta
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "NoEsLaClave.1"}
+
+# Esperado: 401 {"detail": "Credenciales inválidas"} — sin Set-Cookie
+
+### 2) Correo inexistente
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "no-existe@example.com", "password": "NoEsLaClave.1"}
+
+# Esperado: 401 {"detail": "Credenciales inválidas"} — mismo cuerpo, sin Set-Cookie, tiempo parecido

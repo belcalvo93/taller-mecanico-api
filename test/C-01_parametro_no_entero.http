@@ -1,0 +1,26 @@
+# C-01 — Parámetro de ruta no entero con sesión iniciada
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+#
+# NOTA: las rutas con {id} entero las montan CH-05 (/usuarios/{id}/roles) y
+# CH-06 (/clientes/{id}). Hasta que esos changes estén en main, estas dos
+# peticiones responden 404. Con ellos montados, la respuesta esperada es 422.
+
+@base = http://localhost:8000
+
+### 1) Iniciar sesión como admin (la cookie access_token la guarda el cliente)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+# Esperado: 200, Set-Cookie: access_token=...; HttpOnly; Max-Age=1800; Path=/; SameSite=lax
+
+### 2) id no entero en /usuarios/{id}/roles
+GET {{base}}/usuarios/abc/roles
+
+# Esperado: 422 (validación del contrato; el handler no se ejecuta, no consulta la base)
+
+### 3) id no entero en /clientes/{id}
+GET {{base}}/clientes/abc
+
+# Esperado: 422
