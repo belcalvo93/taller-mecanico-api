@@ -79,7 +79,13 @@ _(sin entradas todavía)_
 
 ## Hernán
 
-_(sin entradas todavía)_
+### 2026-10-27 · CH-04 autenticacion (Gate T1: dependencias provisorias)
+- **Fecha:** 2026-10-27
+- **Qué le pidió al agente:** Generar la propuesta SDD para CH-04 (autenticacion) con especificaciones, decisiones de diseño y tareas. Implementar con TDD estricto el Gate T1 de la ola 2: funciones de seguridad (hashear_password, verificar_password, crear_access_token, decodificar_access_token) en app/core/security.py y dependencias de acceso (get_usuario_actual y requiere_rol) en app/core/dependencies.py con las firmas definitivas, lectura exclusiva de cookie access_token, validación de iat < password_cambiada_en sin truncar microsegundos y validación de roles vigentes.
+- **Qué corrigió a mano y por qué:**
+  - Se verificó que get_usuario_actual ignore la cabecera Authorization y lea sólo la cookie access_token (caso C-03 y regla 10 de CLAUDE.md).
+  - Se aseguró que iat en el JWT se preserve como float con fracciones de segundo (sin truncar a entero) para que la comparación contra password_cambiada_en invalide tokens anteriores de forma exacta (RN-07).
+  - Se ajustaron los tests unitarios de AsyncClient pasando cookies en el cliente para mantener la suite limpia sin advertencias de deprecación.
 
 ## Bruno
 
