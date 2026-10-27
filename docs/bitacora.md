@@ -109,6 +109,19 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
   - Se comprobó que el rollback atómico en UsuarioUnitOfWork ante colisión de documento conserve la ficha preexistente intacta (usuario_id=None) y no deje registros sueltos en usuario ni asignacion_rol.
   - Se configuró la base de datos PostgreSQL local creando el rol taller y las bases taller y taller_test, ejecutando alembic upgrade head y validando la suite completa en verde.
 
+### 2026-10-27 · CH-04 autenticacion (login, logout, /auth/yo, cambio de contraseña y casos C-01 a C-05)
+- **Fecha:** 2026-10-27
+- **Qué le pidió al agente:** Implementar con TDD estricto `POST /auth/login` (límite de 5 fallos en 60 s por correo e IP con 429 + Retry-After sin bcrypt, verificación contra hash real o ficticio con el mismo 401, `intento_acceso` en sesión y transacción propias, cookie HttpOnly/SameSite=Lax/Max-Age/Secure configurable), `POST /auth/logout`, `GET /auth/yo` (roles vigentes de la base y roles del token) y `POST /auth/cambiar-password` (nuevo token posterior al cambio e invalidación inmediata de la cookie anterior), más los `.http` de C-01 a C-05.
+- **Qué corrigió a mano y por qué:**
+  - Se pidió que las lecturas del login (conteo de fallos y búsqueda del usuario) vayan dentro de un bloque del UoW para liberar la conexión antes de bcrypt (regla 9), y que el intento se escriba con un `UsuarioUnitOfWork` sobre una sesión propia, así el commit sigue siendo exclusivo del UoW.
+  - En el cambio de contraseña, `get_usuario_actual` deja abierta una transacción de sólo lectura: se cierra con `rollback()` antes de bcrypt y el usuario se vuelve a leer dentro del UoW para actualizarlo.
+  - `password_cambiada_en` se fija estrictamente posterior al `iat` del token con el que se pidió el cambio (+1 µs si el reloj no avanzó), y el token nuevo se emite con `iat = password_cambiada_en`: la cookie vieja da 401 en el acto, sin `sleep`.
+  - Se verificaron a mano contra la base de desarrollo sembrada las respuestas documentadas en `test/C-02` a `test/C-05`.
+
+**Notas**
+- C-01 usa rutas de CH-05 (`/usuarios/{id}/roles`) y CH-06 (`/clientes/{id}`): hasta que estén en main esas peticiones dan 404; con ellas montadas dan 422.
+- El control de `debe_cambiar_password` (403 en el grupo protegido) queda para CH-05: el login de `nuevo@example.com` responde 200 con `debe_cambiar_password: true`.
+
 ## Bruno
 
 _(sin entradas todavía)_
