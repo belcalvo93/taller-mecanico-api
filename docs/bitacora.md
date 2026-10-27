@@ -87,6 +87,14 @@ _(sin entradas todavía)_
   - Se aseguró que iat en el JWT se preserve como float con fracciones de segundo (sin truncar a entero) para que la comparación contra password_cambiada_en invalide tokens anteriores de forma exacta (RN-07).
   - Se ajustaron los tests unitarios de AsyncClient pasando cookies en el cliente para mantener la suite limpia sin advertencias de deprecación.
 
+### 2026-10-27 · CH-04 autenticacion (Contratos, repositorios y auto-registro de cliente)
+- **Fecha:** 2026-10-27
+- **Qué le pidió al agente:** Implementar con TDD estricto los contratos de entrada/salida (schemas.py), repositorios (UsuarioRepository, AsignacionRolRepository, IntentoAccesoRepository, EventoSeguridadRepository), UsuarioUnitOfWork y el endpoint de auto-registro de cliente (POST /auth/registro) con cálculo de bcrypt antes de abrir la transacción, unicidad garantizada por la base (409 ante correo o documento duplicado con rollback total sin filas huérfanas, incluso contra clientes sin usuario como Jorge Gómez), y validación estricta de contratos (422 con extra="forbid" y contraseñas mayores a 72 bytes en UTF-8).
+- **Qué corrigió a mano y por qué:**
+  - Se verificó que PasswordBcryptStr calcule la longitud en bytes codificados en UTF-8 (no caracteres), garantizando que contraseñas como 37 letras 'ñ' (74 bytes) respondan 422 antes de llegar a bcrypt y eviten errores 500.
+  - Se comprobó que el rollback atómico en UsuarioUnitOfWork ante colisión de documento conserve la ficha preexistente intacta (usuario_id=None) y no deje registros sueltos en usuario ni asignacion_rol.
+  - Se configuró la base de datos PostgreSQL local creando el rol taller y las bases taller y taller_test, ejecutando alembic upgrade head y validando la suite completa en verde.
+
 ## Bruno
 
 _(sin entradas todavía)_
