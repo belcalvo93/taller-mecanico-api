@@ -7,15 +7,15 @@
 
 ## 0. Red de seguridad
 
-- [ ] 0.1 Correr la suite completa actual y anotar la línea base (`N passed`). Si algo falla, PARAR y reportarlo como falla previa (no arreglarlo acá)
-- [ ] 0.2 Verificar que `taller_test` no tiene el esquema `nucleo_prueba` (consulta a `information_schema.schemata`); si existe, PARAR y preguntar antes de borrarlo
+- [x] 0.1 Correr la suite completa actual y anotar la línea base (`N passed`). Si algo falla, PARAR y reportarlo como falla previa (no arreglarlo acá)
+- [x] 0.2 Verificar que `taller_test` no tiene el esquema `nucleo_prueba` (consulta a `information_schema.schemata`); si existe, PARAR y preguntar antes de borrarlo
 
 ## 1. Modelos y esquema de prueba (`tests/nucleo_modelos.py`, fixtures)
 
-- [ ] 1.1 ROJO `tests/test_repository.py::test_los_modelos_de_prueba_no_ensucian_la_metadata_de_la_app`: tras importar `tests.nucleo_modelos`, `SQLModel.metadata.tables` sigue teniendo exactamente las 13 tablas y la metadata de prueba tiene `nucleo_prueba.cosa_prueba` y `nucleo_prueba.detalle_prueba`. Ejecutar: falla (no existe el módulo)
-- [ ] 1.2 VERDE: `tests/nucleo_modelos.py` con `BasePrueba` sobre `registry()` y `MetaData(schema="nucleo_prueba")` propios, `CosaPrueba` (`id`, `nombre` UNIQUE, `etiqueta`, `borrado_en timestamptz NULL`, `detalles` con `lazy="raise"`) y `DetallePrueba` (`id`, `cosa_id` FK con índice, `texto`, `codigo` UNIQUE `DEFERRABLE INITIALLY DEFERRED`, `cosa` con `lazy="raise"`) según design D6. Si el registro propio no aísla la metadata, aplicar el plan B de "Risks". Ejecutar 1.1 y `tests/test_modelos.py`: verdes
-- [ ] 1.3 ROJO→VERDE fixtures en `tests/conftest.py`: `esquema_nucleo` (depende de `motor`; `DROP SCHEMA IF EXISTS nucleo_prueba CASCADE`, `CREATE SCHEMA`, `CreateTable` de las dos tablas; al terminar `DROP SCHEMA ... CASCADE`) y `sesiones` (= `crear_fabrica_sesiones(motor)`). Test: con la fixture, las dos tablas existen en `information_schema.tables`; TRIANGULAR: después del test el esquema ya no existe (verificarlo en un test siguiente o con un finalizador). Ejecutar: verdes
-- [ ] 1.4 Correr toda la suite: `test_modelos.py` (13 tablas) y `test_migraciones.py` (`alembic check`) siguen verdes
+- [x] 1.1 ROJO `tests/test_repository.py::test_los_modelos_de_prueba_no_ensucian_la_metadata_de_la_app`: tras importar `tests.nucleo_modelos`, `SQLModel.metadata.tables` sigue teniendo exactamente las 13 tablas y la metadata de prueba tiene `nucleo_prueba.cosa_prueba` y `nucleo_prueba.detalle_prueba`. Ejecutar: falla (no existe el módulo)
+- [x] 1.2 VERDE: `tests/nucleo_modelos.py` con `BasePrueba` sobre `registry()` y `MetaData(schema="nucleo_prueba")` propios, `CosaPrueba` (`id`, `nombre` UNIQUE, `etiqueta`, `borrado_en timestamptz NULL`, `detalles` con `lazy="raise"`) y `DetallePrueba` (`id`, `cosa_id` FK con índice, `texto`, `codigo` UNIQUE `DEFERRABLE INITIALLY DEFERRED`, `cosa` con `lazy="raise"`) según design D6. Si el registro propio no aísla la metadata, aplicar el plan B de "Risks". Ejecutar 1.1 y `tests/test_modelos.py`: verdes
+- [x] 1.3 ROJO→VERDE fixtures en `tests/conftest.py`: `esquema_nucleo` (depende de `motor`; `DROP SCHEMA IF EXISTS nucleo_prueba CASCADE`, `CREATE SCHEMA`, `CreateTable` de las dos tablas; al terminar `DROP SCHEMA ... CASCADE`) y `sesiones` (= `crear_fabrica_sesiones(motor)`). Test: con la fixture, las dos tablas existen en `information_schema.tables`; TRIANGULAR: después del test el esquema ya no existe (verificarlo en un test siguiente o con un finalizador). Ejecutar: verdes
+- [x] 1.4 Correr toda la suite: `test_modelos.py` (13 tablas) y `test_migraciones.py` (`alembic check`) siguen verdes
 
 ## 2. Paginación pura (`app/core/paginacion.py`)
 
