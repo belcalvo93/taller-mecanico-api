@@ -131,7 +131,9 @@ _(sin entradas todavía)_
 ### 2026-10-27 · CH-06 clientes-y-vehiculos
 - **Fecha:** 2026-10-27
 - **Qué le pidió al agente:** armar el change completo: `/opsx:propose clientes-y-vehiculos` (proposal, spec, design y tasks) y después `/opsx:apply` con TDD estricto: `ClienteRepository` (DD-13), `VehiculoRepository` con baja lógica y "órdenes abiertas" según `estado_orden.es_final`, UoW del módulo, contratos, servicio, router en el grupo protegido, tests contra `taller_test` y el `.http` de C-19. Después, rebasear sobre `main` cuando se mergearon CH-03 y CH-04.
-- **Qué corrigió a mano y por qué:** _(completar al revisar el PR)_
+- **Qué corrigió a mano y por qué:**  
+  - Revisé la normalización de la patente (mayúsculas, sin espacios, sólo letras y números de 4 a 10) y la dejé: sin ella "ac456ef" esquivaba el índice único parcial de "AC456EF" y podían quedar dos vehículos vigentes con la misma patente (RN-01).
+  - Revisé los mensajes de error de clientes y vehículos (404 y 409) y los dejé como estaban: son mensajes propios y no muestran texto de la base (RN-18).
 
 **Notas de la sesión**
 - Al arrancar, `main` no tenía el núcleo de CH-03 ni la T1 de CH-04. Para no frenar se escribieron versiones mínimas en un commit aparte marcado PROVISORIO. Cuando se mergearon los PR #14, #15 y #16, se rebaseó sobre `main` y ese commit se **descartó**: el change usa sólo lo de Elías y Hernán (design D1).
