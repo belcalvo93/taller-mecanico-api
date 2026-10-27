@@ -19,14 +19,14 @@
 
 ## 2. Paginación pura (`app/core/paginacion.py`)
 
-- [ ] 2.1 ROJO `tests/test_paginacion.py` (spec paginacion, "Cálculo de la cantidad de páginas"): `calcular_paginas` con (0,20)→1, (0,1)→1, (1,1)→1, (1,20)→1, (40,20)→2, (41,20)→3, parametrizado. Ejecutar: falla (no existe el módulo)
-- [ ] 2.2 VERDE: `calcular_paginas(total, size)` = `max(1, ceil(total/size))`. Ejecutar: verde
-- [ ] 2.3 ROJO→VERDE `PaginaInexistente(page=3, pages=2)`: su mensaje es exactamente `La página 3 no existe: hay 2`; TRIANGULAR con (2,1) → `La página 2 no existe: hay 1`. Ejecutar: verdes
-- [ ] 2.4 ROJO→VERDE `Pagina[T]` (escenario "Forma del envoltorio"): serializada tiene exactamente las claves `items`, `total`, `page`, `size`, `pages`; TRIANGULAR: con `items` vacío y `total` 0 serializa `pages` 1 tal como se le pasó. Ejecutar: verdes
-- [ ] 2.5 ROJO→VERDE parámetros (requirement "Parámetros de página validados en el contrato") con una mini `FastAPI()` de prueba que declara `Depends(parametros_pagina)` y devuelve los valores recibidos: sin parámetros → `page` 1, `size` 20; `size=1` y `size=100` → 200; `size=0`, `101`, `500` → 422; `page=0`, `-1`, `abc` → 422; en los 422 el handler no se ejecutó (contador en el test). Ejecutar: verdes
-- [ ] 2.6 ROJO→VERDE manejador (requirement "Página inexistente"): la mini app registra `responder_pagina_inexistente`; una ruta que lanza `PaginaInexistente(3, 2)` responde 422 con `{"detail": "La página 3 no existe: hay 2"}` y sin traza. TRIANGULAR: sin registrar el manejador la misma ruta daría 500 (documenta por qué se registra en `main.py`). Ejecutar: verdes
-- [ ] 2.7 ROJO→VERDE registro en `main.py`: test de que `app.exception_handlers` de la app real tiene `PaginaInexistente` → `responder_pagina_inexistente`; agregar la línea `app.add_exception_handler(...)` en `main.py` con comentario (RN-18). Ejecutar: verde
-- [ ] 2.8 REFACTOR: docstrings del módulo (envoltorio, `pages` mínimo 1, mensaje); suite verde
+- [x] 2.1 ROJO `tests/test_paginacion.py` (spec paginacion, "Cálculo de la cantidad de páginas"): `calcular_paginas` con (0,20)→1, (0,1)→1, (1,1)→1, (1,20)→1, (40,20)→2, (41,20)→3, parametrizado. Ejecutar: falla (no existe el módulo)
+- [x] 2.2 VERDE: `calcular_paginas(total, size)` = `max(1, ceil(total/size))`. Ejecutar: verde
+- [x] 2.3 ROJO→VERDE `PaginaInexistente(page=3, pages=2)`: su mensaje es exactamente `La página 3 no existe: hay 2`; TRIANGULAR con (2,1) → `La página 2 no existe: hay 1`. Ejecutar: verdes
+- [x] 2.4 ROJO→VERDE `Pagina[T]` (escenario "Forma del envoltorio"): serializada tiene exactamente las claves `items`, `total`, `page`, `size`, `pages`; TRIANGULAR: con `items` vacío y `total` 0 serializa `pages` 1 tal como se le pasó. Ejecutar: verdes
+- [x] 2.5 ROJO→VERDE parámetros (requirement "Parámetros de página validados en el contrato") con una mini `FastAPI()` de prueba que declara `Depends(parametros_pagina)` y devuelve los valores recibidos: sin parámetros → `page` 1, `size` 20; `size=1` y `size=100` → 200; `size=0`, `101`, `500` → 422; `page=0`, `-1`, `abc` → 422; en los 422 el handler no se ejecutó (contador en el test). Ejecutar: verdes
+- [x] 2.6 ROJO→VERDE manejador (requirement "Página inexistente"): la mini app registra `responder_pagina_inexistente`; una ruta que lanza `PaginaInexistente(3, 2)` responde 422 con `{"detail": "La página 3 no existe: hay 2"}` y sin traza. TRIANGULAR: sin registrar el manejador la misma ruta daría 500 (documenta por qué se registra en `main.py`). Ejecutar: verdes
+- [x] 2.7 ROJO→VERDE registro en `main.py`: test de que `app.exception_handlers` de la app real tiene `PaginaInexistente` → `responder_pagina_inexistente`; agregar la línea `app.add_exception_handler(...)` en `main.py` con comentario (RN-18). Ejecutar: verde
+- [x] 2.8 REFACTOR: docstrings del módulo (envoltorio, `pages` mínimo 1, mensaje); suite verde
 
 ## 3. `BaseRepository[T]` (`app/core/repository.py`)
 
