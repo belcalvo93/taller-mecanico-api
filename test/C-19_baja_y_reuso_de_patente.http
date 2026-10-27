@@ -1,0 +1,53 @@
+# C-19 — Dar de baja un vehículo sin órdenes y registrarlo con la misma patente
+# para otro cliente → 204 y 201 (el índice único parcial sólo cuenta los
+# vigentes); una segunda patente vigente igual → 409. (RN-01, RN-16)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: cliente 1 = Laura, con los vehículos 1 AB123CD (orden 1
+# PENDIENTE) y 2 AC456EF (sin órdenes); cliente 2 = Jorge, con el vehículo 3.
+# Una sola sesión (recepción): alcanza con el cookie jar de REST Client.
+
+@base = http://localhost:8000
+
+### 1. Login de recepción
+# Esperado: 200 y Set-Cookie: access_token=...; HttpOnly; Max-Age=1800; Path=/; SameSite=lax
+# @name loginRecepcion
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 2. Antes: el cliente 1 tiene AB123CD y AC456EF
+# Esperado: 200 con "vehiculos": [{"id": 1, "patente": "AB123CD", ...}, {"id": 2, "patente": "AC456EF", ...}]
+GET {{base}}/clientes/1
+
+### 3. Baja del vehículo 2 (AC456EF), que no tiene órdenes
+# Esperado: 204 No Content, sin cuerpo
+DELETE {{base}}/vehiculos/2
+
+### 4. El vehículo dado de baja deja de aparecer
+# Esperado: 200 con "vehiculos": [{"id": 1, "patente": "AB123CD", ...}] (sólo uno)
+GET {{base}}/clientes/1
+
+### 5. La misma patente, ahora para Jorge (cliente 2)
+# Esperado: 201
+# {"id": 4, "cliente_id": 2, "patente": "AC456EF", "marca": "Toyota", "modelo": "Etios", "anio": 2019}
+POST {{base}}/clientes/2/vehiculos
+Content-Type: application/json
+
+{"patente": "AC456EF", "marca": "Toyota", "modelo": "Etios", "anio": 2019}
+
+### 6. Una segunda patente VIGENTE igual (otra vez para Laura)
+# Esperado: 409 {"detail": "Ya hay un vehículo vigente con esa patente"}
+POST {{base}}/clientes/1/vehiculos
+Content-Type: application/json
+
+{"patente": "ac456ef", "marca": "Toyota", "modelo": "Etios", "anio": 2019}
+
+### 7. Dar de baja otra vez el vehículo 2 (ya dado de baja)
+# Esperado: 404 {"detail": "Vehículo no encontrado"}
+DELETE {{base}}/vehiculos/2
+
+### 8. Baja de un vehículo con una orden abierta (vehículo 1, orden 1 PENDIENTE)
+# Esperado: 409 {"detail": "El vehículo tiene órdenes abiertas: no se puede dar de baja"}
+DELETE {{base}}/vehiculos/1
