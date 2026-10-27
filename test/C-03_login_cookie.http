@@ -1,0 +1,40 @@
+# C-03 — Login con cookie HttpOnly; el token nunca viaja en el cuerpo ni se lee de Authorization
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+
+@base = http://localhost:8000
+
+### 1) Login válido
+# @name login
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "cliente@example.com", "password": "Cliente.2026"}
+
+# Esperado: 200
+# Set-Cookie: access_token=<jwt>; HttpOnly; Max-Age=1800; Path=/; SameSite=lax
+#   (Secure sólo si COOKIE_SECURE=true)
+# Cuerpo (sin token): {"mensaje": "Sesión iniciada", "debe_cambiar_password": false, "expira_en_segundos": 1800}
+
+### 2) Con la cookie: identidad
+GET {{base}}/auth/yo
+
+# Esperado: 200
+# {"id": 6, "email": "cliente@example.com", "nombre": "Laura Cliente", "activo": true,
+#  "debe_cambiar_password": false, "roles_vigentes": ["CLIENTE"], "roles_token": ["CLIENTE"]}
+
+### 3) Cerrar sesión
+POST {{base}}/auth/logout
+
+# Esperado: 200 {"mensaje": "Sesión cerrada"} y Set-Cookie: access_token=""; Max-Age=0
+
+### 4) Sin cookie (después del logout)
+GET {{base}}/auth/yo
+
+# Esperado: 401
+
+### 5) Sólo con Authorization: Bearer (pegar el token del paso 1), sin cookie
+GET {{base}}/auth/yo
+Authorization: Bearer PEGAR_ACA_EL_TOKEN_DEL_PASO_1
+Cookie:
+
+# Esperado: 401 (la dependencia lee únicamente request.cookies["access_token"])

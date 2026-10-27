@@ -38,35 +38,35 @@
 
 ## 4. Login con cookie, límite de intentos y anti-enumeración (`POST /auth/login` — US-009, RN-08, RN-09, SU-02, C-03, C-04, C-05)
 
-- [ ] 4.1 ROJO `tests/test_auth_login.py`: tests para `POST /auth/login`:
+- [x] 4.1 ROJO `tests/test_auth_login.py`: tests para `POST /auth/login`:
   - `200` con credenciales válidas: `Set-Cookie` incluye `access_token`, `HttpOnly`, `SameSite=lax`, `Max-Age=1800`; el cuerpo JSON contiene sólo `mensaje`, `debe_cambiar_password` y `expira_en_segundos` (sin token); registra fila `exito=True` en `intento_acceso`;
   - `401` con correo existente y contraseña errónea vs correo inexistente: ambos ejecutan `bcrypt` (real vs `app.state.hash_ficticio`), devuelven idéntico cuerpo JSON y registran el intento fallido en `intento_acceso` desde una sesión propia que sobrevive al `401` (C-04);
   - sexto intento dentro de 60 s para el mismo `(email, ip)` responde `429` con cabecera `Retry-After` sin invocar `bcrypt` (espía sobre `bcrypt.checkpw`) y sin insertar una sexta fila de fallo en `intento_acceso` (quedan 5 fallos, C-05, SU-02);
   - un login exitoso antes del 5.º fallo reinicia el conteo (los fallos anteriores siguen en `intento_acceso` pero no bloquean nuevos intentos);
   - contraseña de más de 72 bytes en el login responde `422`.
   Ejecutar pytest y verificar que falla
-- [ ] 4.2 VERDE `app/modules/usuarios/service.py` y `router.py`: implementar `login` y `POST /auth/login` con el orden estricto de design D6 y la sesión independiente para `intento_acceso` con el comentario obligatorio del Ejercicio 7. Ejecutar `tests/test_auth_login.py` y verificar que pasa en verde
+- [x] 4.2 VERDE `app/modules/usuarios/service.py` y `router.py`: implementar `login` y `POST /auth/login` con el orden estricto de design D6 y la sesión independiente para `intento_acceso` con el comentario obligatorio del Ejercicio 7. Ejecutar `tests/test_auth_login.py` y verificar que pasa en verde
 
 ## 5. Logout, `/auth/yo` y cambio de contraseña (`POST /auth/logout`, `GET /auth/yo`, `POST /auth/cambiar-password` — US-010, RN-07, C-09 parcial)
 
-- [ ] 5.1 ROJO `tests/test_auth_sesion_y_password.py`: tests para:
+- [x] 5.1 ROJO `tests/test_auth_sesion_y_password.py`: tests para:
   - `POST /auth/logout` → `200` borrando la cookie `access_token`;
   - `GET /auth/yo` → `200` con datos del usuario (sin `password_hash`), `roles_vigentes` de la base y `roles_token` del JWT; `401` sin cookie o con `Authorization: Bearer` sin cookie (C-03);
   - `POST /auth/cambiar-password`: verifica contraseña actual (`401` si es incorrecta), calcula nuevo hash antes de abrir la transacción, actualiza `password_hash`, `password_cambiada_en`, `debe_cambiar_password=False` y registra el evento en `evento_seguridad` en un solo UoW; emite una cookie `access_token` nueva válida (`200` en `/auth/yo`) y deja inválida de inmediato la cookie anterior (`401` en `/auth/yo` sin esperar entre login y cambio, RN-07); `422` si la contraseña actual o nueva supera 72 bytes.
   Ejecutar pytest y verificar que falla
-- [ ] 5.2 VERDE `app/modules/usuarios/service.py` y `router.py`: implementar `POST /auth/logout`, `GET /auth/yo` y `POST /auth/cambiar-password` según design D7. Ejecutar `tests/test_auth_sesion_y_password.py` y verificar que pasa en verde
+- [x] 5.2 VERDE `app/modules/usuarios/service.py` y `router.py`: implementar `POST /auth/logout`, `GET /auth/yo` y `POST /auth/cambiar-password` según design D7. Ejecutar `tests/test_auth_sesion_y_password.py` y verificar que pasa en verde
 
 ## 6. Casos `.http` (`C-01` a `C-05`), verificación integral y bitácora
 
-- [ ] 6.1 Crear los archivos `.http` en `test/` con la respuesta esperada en comentarios y verificar que las peticiones reflejan los datos de `seed.py`:
+- [x] 6.1 Crear los archivos `.http` en `test/` con la respuesta esperada en comentarios y verificar que las peticiones reflejan los datos de `seed.py`:
   - `test/C-01_parametro_no_entero.http` (parámetro de ruta no entero con sesión iniciada → `422` sin ejecutar el handler);
   - `test/C-02_registro_cliente.http` (registro `201`; correo y documento repetidos → `409` con mensaje propio y sin filas sueltas);
   - `test/C-03_login_cookie.http` (`Set-Cookie` con `HttpOnly`, `SameSite=Lax` y `Max-Age`; cuerpo sin token; sin cookie o con `Authorization: Bearer` → `401`);
   - `test/C-04_login_anti_enumeracion.http` (correo existente con contraseña mala y correo inexistente → `401` con el mismo cuerpo y tiempo parecido);
   - `test/C-05_login_limite_intentos.http` (seis intentos fallidos seguidos → el sexto responde `429` con `Retry-After` en pocos milisegundos y los cinco fallos están en `intento_acceso`)
-- [ ] 6.2 Ejecutar toda la suite de pytest (`.venv/Scripts/python -m pytest`) y verificar que el 100 % de los tests de CH-01, CH-02, CH-03 y CH-04 pasan en verde y que se cumplen RN-01, RN-02, RN-07, RN-08, RN-09, RN-18 y las reglas 8–11, 13, 14 y 16 de `CLAUDE.md`
-- [ ] 6.3 Actualizar la sección `## Hernán` en `docs/bitacora.md` con la entrada de CH-04 (`autenticacion`): fecha, qué se le pidió al agente, qué se revisó/corrigió a mano y decisiones clave (D1 a D8)
-- [ ] 6.4 **[CHECKPOINT 3 — Cierre de CH-04 y propuesta de commits]** Mostrar el estado final (`git status` sin `.env`, suite pytest en verde, archivos `.http`) y presentar la división de commits en español para que Hernán confirme
+- [x] 6.2 Ejecutar toda la suite de pytest (`.venv/Scripts/python -m pytest`) y verificar que el 100 % de los tests de CH-01, CH-02, CH-03 y CH-04 pasan en verde y que se cumplen RN-01, RN-02, RN-07, RN-08, RN-09, RN-18 y las reglas 8–11, 13, 14 y 16 de `CLAUDE.md`
+- [x] 6.3 Actualizar la sección `## Hernán` en `docs/bitacora.md` con la entrada de CH-04 (`autenticacion`): fecha, qué se le pidió al agente, qué se revisó/corrigió a mano y decisiones clave (D1 a D8)
+- [x] 6.4 **[CHECKPOINT 3 — Cierre de CH-04 y propuesta de commits]** Mostrar el estado final (`git status` sin `.env`, suite pytest en verde, archivos `.http`) y presentar la división de commits en español para que Hernán confirme
 
 ## Workflow follow-up
 

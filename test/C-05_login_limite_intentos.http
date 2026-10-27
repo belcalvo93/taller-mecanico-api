@@ -1,0 +1,59 @@
+# C-05 — Límite de intentos: el 6.º intento en 60 s responde 429 sin calcular hash (RN-08, SU-02)
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+# Ejecutar las seis peticiones seguidas (en menos de 60 segundos).
+
+@base = http://localhost:8000
+
+### 1.º fallo
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mala.1"}
+
+# Esperado: 401
+
+### 2.º fallo
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mala.2"}
+
+# Esperado: 401
+
+### 3.º fallo
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mala.3"}
+
+# Esperado: 401
+
+### 4.º fallo
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mala.4"}
+
+# Esperado: 401
+
+### 5.º fallo
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mala.5"}
+
+# Esperado: 401
+
+### 6.º intento — aun con la contraseña CORRECTA
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mecanico.2026"}
+
+# Esperado: 429 con cabecera Retry-After: <segundos hasta que venza el 1.er fallo>
+# Responde en pocos milisegundos (no ejecuta bcrypt) y no agrega una 6.ª fila.
+#
+# Verificación en psql:
+#   SELECT cuando, email, ip, exito FROM intento_acceso
+#   WHERE email = 'mecanico@example.com' ORDER BY cuando;
+# Esperado: exactamente 5 filas con exito = false.

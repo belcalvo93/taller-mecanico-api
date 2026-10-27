@@ -1,0 +1,80 @@
+# C-02 — Auto-registro de cliente (RN-01, RN-02, RN-18)
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+
+@base = http://localhost:8000
+
+### 1) Registro válido
+POST {{base}}/auth/registro
+Content-Type: application/json
+
+{
+  "email": "sofia@example.com",
+  "nombre": "Sofía Registro",
+  "password": "Sofia.2026",
+  "documento": "40555666",
+  "telefono": "11 4000-2222"
+}
+
+# Esperado: 201
+# {"id": 8, "email": "sofia@example.com", "nombre": "Sofía Registro",
+#  "documento": "40555666", "telefono": "11 4000-2222", "cliente_id": 3}
+# Sin password_hash. En la base: usuario + asignacion_rol (CLIENTE) + cliente + evento_seguridad.
+
+### 2) Correo repetido
+POST {{base}}/auth/registro
+Content-Type: application/json
+
+{
+  "email": "cliente@example.com",
+  "nombre": "Otra Persona",
+  "password": "Otra.2026",
+  "documento": "40777888",
+  "telefono": "11 4000-3333"
+}
+
+# Esperado: 409 {"detail": "El correo electrónico ya está registrado"}
+# Sin texto de PostgreSQL. No queda ninguna fila nueva.
+
+### 3) Documento de un cliente del taller sin usuario (Jorge Gómez, 25333444)
+POST {{base}}/auth/registro
+Content-Type: application/json
+
+{
+  "email": "jorge@example.com",
+  "nombre": "Jorge Gómez",
+  "password": "Jorge.2026",
+  "documento": "25333444",
+  "telefono": "11 4000-4444"
+}
+
+# Esperado: 409 {"detail": "El documento ya pertenece a un cliente registrado"}
+# Rollback total: no queda el usuario jorge@ ni su rol; la ficha de Jorge sigue con usuario_id NULL.
+
+### 4) Intento de escalar rol con un campo extra
+POST {{base}}/auth/registro
+Content-Type: application/json
+
+{
+  "email": "hacker@example.com",
+  "nombre": "Hacker",
+  "password": "Hacker.2026",
+  "documento": "40999000",
+  "telefono": "11 4000-5555",
+  "rol": "ADMIN"
+}
+
+# Esperado: 422 (extra="forbid"), sin tocar la base
+
+### 5) Contraseña de 37 "ñ" = 74 bytes en UTF-8
+POST {{base}}/auth/registro
+Content-Type: application/json
+
+{
+  "email": "largo@example.com",
+  "nombre": "Largo",
+  "password": "ñññññññññññññññññññññññññññññññññññññ",
+  "documento": "40999111",
+  "telefono": "11 4000-6666"
+}
+
+# Esperado: 422 (máximo 72 bytes, nunca 500)
