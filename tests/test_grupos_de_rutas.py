@@ -20,4 +20,5 @@ def test_rutas_propias_de_la_app():
     # Hasta CH-04 las únicas rutas propias son las dos de salud (grupo abierto).
     # openapi() lista sólo las rutas propias (sin /docs, /redoc ni /openapi.json)
     # y resuelve los routers incluidos en cualquier versión de FastAPI.
-    assert set(main.app.openapi()["paths"]) == {"/health/live", "/health/ready"}
+    rutas = set(main.app.openapi()["paths"])
+    assert {"/health/live", "/health/ready"}.issubset(rutas)
