@@ -51,12 +51,6 @@ from app.core.repository import BaseRepository  # noqa: E402
 from tests.nucleo_modelos import CosaPrueba, DetallePrueba  # noqa: E402
 
 
-@pytest.fixture
-async def sesion(esquema_nucleo, sesiones):
-    async with sesiones() as s:
-        yield s
-
-
 async def insertar_cosas(sesiones, *filas: dict) -> None:
     """Inserta y CONFIRMA filas con SQL Core desde una sesión aparte (datos de partida)."""
     async with sesiones() as s:
@@ -85,19 +79,6 @@ from sqlalchemy.exc import InvalidRequestError  # noqa: E402
 from sqlalchemy.orm import selectinload  # noqa: E402
 
 from app.core.paginacion import ParametrosPagina, PaginaInexistente  # noqa: E402
-
-
-@pytest.fixture
-def sentencias(motor):
-    """Lista de las sentencias SQL que ejecuta el motor (para contar consultas)."""
-    vistas: list[str] = []
-
-    def _registrar(conn, cursor, statement, parameters, context, executemany):
-        vistas.append(statement)
-
-    event.listen(motor.sync_engine, "before_cursor_execute", _registrar)
-    yield vistas
-    event.remove(motor.sync_engine, "before_cursor_execute", _registrar)
 
 
 def solo_select(sentencias: list[str]) -> int:

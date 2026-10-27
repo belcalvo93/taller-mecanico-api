@@ -129,7 +129,7 @@ async def conexion(motor):
 
 
 # --- Base sembrada (seed.py) ---------------------------------------------------
-from sqlalchemy import text  # noqa: E402
+from sqlalchemy import event, text  # noqa: E402
 
 TRUNCAR_TODO = (
     "TRUNCATE usuario, asignacion_rol, intento_acceso, evento_seguridad, cliente, vehiculo, "
@@ -189,3 +189,22 @@ async def esquema_nucleo(motor):
 def sesiones(motor):
     """La fábrica real de la app (expire_on_commit=False) sobre el motor del test."""
     return crear_fabrica_sesiones(motor)
+
+
+@pytest.fixture
+async def sesion(esquema_nucleo, sesiones):
+    async with sesiones() as s:
+        yield s
+
+
+@pytest.fixture
+def sentencias(motor):
+    """Lista de las sentencias SQL que ejecuta el motor (para contar consultas)."""
+    vistas: list[str] = []
+
+    def _registrar(conn, cursor, statement, parameters, context, executemany):
+        vistas.append(statement)
+
+    event.listen(motor.sync_engine, "before_cursor_execute", _registrar)
+    yield vistas
+    event.remove(motor.sync_engine, "before_cursor_execute", _registrar)
