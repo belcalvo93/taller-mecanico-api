@@ -52,7 +52,7 @@
 - [x] 4.5 ROJO→VERDE `get_by_id_including_deleted` ("Entidad dada de baja" y "Entidad inexistente"): devuelve la dada de baja con `borrado_en` cargado; con un id inexistente, `None`. Ejecutar: verdes
 - [x] 4.6 ROJO→VERDE ("Paginado con borrado lógico"): repetir el escenario de 3.9 con una de las `x` dada de baja → no aparece en ítems y `total` es 2. Ejecutar: verde
 - [x] 4.7 REFACTOR: docstring (lo usan vehículo y repuesto; `get_by_id_including_deleted` para terminar órdenes, DD-14); suite verde
-- [ ] 4.8 **[CHECKPOINT 1 — repositorios y paginación]** Frenar y mostrarle a Elías `repository.py`, `paginacion.py`, la línea de `main.py`, `tests/nucleo_modelos.py`, las fixtures y los tests. No seguir sin su OK
+- [x] 4.8 **[CHECKPOINT 1 — repositorios y paginación]** Frenar y mostrarle a Elías `repository.py`, `paginacion.py`, la línea de `main.py`, `tests/nucleo_modelos.py`, las fixtures y los tests. No seguir sin su OK
 
 ## 5. `UnitOfWork` base (`app/core/unit_of_work.py`)
 
@@ -67,14 +67,14 @@
 - [x] 5.9 ROJO→VERDE ("Nadie más confirma"): test de texto sobre `app/` y `main.py`: la única `.commit(` está en `app/core/unit_of_work.py` (lista de excepciones vacía hoy, con un comentario que reserva la de `intento_acceso` de CH-04). Ejecutar: verde
 - [x] 5.10 ROJO→VERDE ("Petición que escribe" y "Petición que falla"): mini `FastAPI()` con `lifespan` que guarda `crear_fabrica_sesiones(motor)` en `app.state.session_factory`; dependencia `get_uow_prueba(session=Depends(get_session))` que construye el `UoWPrueba`; ruta POST que se lo pasa a un servicio de prueba que lo abre con `async with`. Caso OK → 201 y la fila existe desde otra sesión; caso con excepción de dominio traducida por la ruta a 409 → 409 y la fila no existe; en ambos la sesión de la petición quedó cerrada (espía sobre la fábrica). Ejecutar: verdes
 - [x] 5.11 REFACTOR: docstring del módulo con el patrón de UoW concreto, la dependencia del router y "el servicio lo abre, nunca lo construye" (design D4); suite verde
-- [ ] 5.12 **[CHECKPOINT 2 — Unit of Work]** Frenar y mostrarle a Elías `unit_of_work.py` y sus tests. No seguir sin su OK
+- [x] 5.12 **[CHECKPOINT 2 — Unit of Work]** Frenar y mostrarle a Elías `unit_of_work.py` y sus tests. No seguir sin su OK
 
 ## 6. Cierre
 
 - [x] 6.1 Correr la suite completa (`python -m pytest` desde la raíz) y comparar con la línea base de 0.1: todo verde, `nucleo_prueba` no existe al terminar y `alembic check` sigue verde
 - [x] 6.2 Verificar a mano contra las reglas que toca el change y anotar el resultado en el PR: CLAUDE.md #13 (flush sin commit, clase del modelo, `SoftDeleteRepository` hereda, catálogo libre de heredar, precarga en el método), #14 (UoW confirma/revierte/no cierra, único commit, router construye/servicio abre), #16 (envoltorio, page/size, 422, total con filtros, página vacía), #17 (sin SQL concatenado, todo `async`); AP-04; soporte de RN-02, RN-13, RN-20 (un bloque) y RN-16 (baja lógica); RN-18 (página inexistente sin 500). Casos C: ninguno directo; anotar que C-16 (paginación con filtro, `page=2` → 422, `size=500` → 422) queda cubierto en su lógica por los tests de 2.x y 3.9
 - [x] 6.3 Agregar en `docs/bitacora.md`, sección de Elías, la entrada `### 2026-10-XX · CH-03 nucleo-repositorios-uow` con la plantilla (fecha, qué se le pidió al agente, qué se corrigió a mano y por qué), incluyendo las decisiones confirmadas de `design.md`
-- [ ] 6.4 Escribir en la descripción del PR (`Closes #3`) las firmas públicas de `BaseRepository`, `SoftDeleteRepository`, `UnitOfWork`, `parametros_pagina`, `Pagina` y `PaginaInexistente` para Hernán, Joaquín y Bruno, y el aviso a Belén del esquema `nucleo_prueba` (design D6)
+- [x] 6.4 Escribir en la descripción del PR (`Closes #3`) las firmas públicas de `BaseRepository`, `SoftDeleteRepository`, `UnitOfWork`, `parametros_pagina`, `Pagina` y `PaginaInexistente` para Hernán, Joaquín y Bruno, y el aviso a Belén del esquema `nucleo_prueba` (design D6)
 
 ## Workflow follow-up
 
