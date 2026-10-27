@@ -75,7 +75,21 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 
 ## Elías
 
-_(sin entradas todavía)_
+### 2026-10-27 · CH-03 nucleo-repositorios-uow
+- **Fecha:** 2026-10-27
+- **Qué le pidió al agente:** implementar `/opsx:apply nucleo-repositorios-uow` con TDD estricto: `BaseRepository[T]`, `SoftDeleteRepository[T]`, `UnitOfWork` base y la paginación común (`parametros_pagina`, `Pagina`, `PaginaInexistente`), probados contra PostgreSQL real con modelos de prueba en el esquema `nucleo_prueba`. Se desarrolló y se probó con **Python 3.14.7** (en `.venv`), que difiere del piso de 3.12 de CLAUDE.md.
+- **Qué corrigió a mano y por qué:**
+  - Confirmé antes del apply las 7 decisiones del design (abajo) y los checkpoints 1 y 2 quedan para mi revisión antes del PR.
+  - Pedí que los commits llevaran el nombre del change y que el agente no hiciera push ni `engram sync`.
+
+**Decisiones aprobadas del design**
+1. `main.py` registra con una línea el manejador de `PaginaInexistente` (RN-18): 422 en vez de 500 aunque un router no la traduzca.
+2. Con cero resultados `pages` vale 1 (por eso `page=2` sin resultados da 422 "hay 1").
+3. `update(entidad, cambios: dict)` rechaza con `ValueError` las claves que no son columnas.
+4. `delete` hace `flush()`, igual que `add` y `update`.
+5. Un `soft_delete` repetido conserva la fecha de la primera baja.
+6. Los modelos de prueba viven en el esquema `nucleo_prueba` de `taller_test`, con registro y MetaData propios: no tocan `SQLModel.metadata` (siguen las 13 tablas) ni `alembic check`. Avisar a Belén en el PR.
+7. El 422 de página inexistente tiene el cuerpo `{"detail": "<mensaje>"}`.
 
 ## Hernán
 

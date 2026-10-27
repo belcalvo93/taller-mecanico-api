@@ -7,6 +7,7 @@ from fastapi import APIRouter, FastAPI
 
 from app.core.config import Settings, get_settings
 from app.core.database import crear_fabrica_sesiones, crear_motor
+from app.core.paginacion import PaginaInexistente, responder_pagina_inexistente
 import app.modules.modelos  # noqa: F401  (registra los 13 mapeos; sin esto las relaciones entre módulos no se resuelven)
 from app.modules.health.router import router as health_router
 from app.modules.usuarios.router import router as auth_router
@@ -54,6 +55,9 @@ async def lifespan(app: FastAPI):
 
 # Un FastAPI no es un recurso: no abre conexiones ni lee el entorno al importar.
 app = FastAPI(title="Taller mecánico API", lifespan=lifespan)
+
+# RN-18: una página inexistente es 422 con mensaje propio, nunca 500, aunque un router no la traduzca.
+app.add_exception_handler(PaginaInexistente, responder_pagina_inexistente)
 
 rutas_abiertas = APIRouter()
 rutas_protegidas = APIRouter()  # CH-05 le agrega, una sola vez, el control del cambio obligatorio
