@@ -6,10 +6,10 @@
 
 ## 0. Red de seguridad
 
-- [x] 0.1 Correr la suite de `main` y anotar la línea base (263 passed; al cerrar: 403 passed)
+- [x] 0.1 Correr la suite de `main` y anotar la línea base (263 passed sobre `f7c4364`)
 - [x] 0.2 Confirmar qué falta en `main` para este change: núcleo de CH-03 y T1 de CH-04 (design D1)
 
-## 1. Núcleo provisorio (commit aparte, se descarta al mergear CH-03 y la T1 de CH-04)
+## 1. Núcleo provisorio (commit aparte) — DESCARTADO al rebasear sobre `main` con CH-03 y CH-04 mergeados
 
 - [x] 1.1 ROJO→VERDE `tests/test_nucleo_provisorio.py`: `add` hace flush sin commit (otra sesión no ve la fila); `get_by_id` inexistente → `None`; `SoftDeleteRepository.get_by_id` excluye dados de baja y `get_by_id_including_deleted` no; `soft_delete` escribe `borrado_en`
 - [x] 1.2 ROJO→VERDE UoW: confirma al salir, revierte con excepción y relanza, no cierra la sesión
@@ -51,7 +51,7 @@
 ## 6. Caso C-19 y cierre
 
 - [x] 6.1 `test/C-19_baja_y_reuso_de_patente.http` con la respuesta esperada en un comentario y el login de recepción (`# @name`)
-- [x] 6.2 Correrlo contra el servidor real (`alembic upgrade head`, `python seed.py`, `uvicorn`) — con la autenticación provisoria
+- [x] 6.2 Correrlo contra el servidor real (`alembic upgrade head`, `python seed.py`, `uvicorn`) — con el login real de CH-04
 - [x] 6.3 Suite completa verde y comparación con la línea base
 - [x] 6.4 Verificar contra RN-01, RN-16, RN-17, RN-18, C-01 (parte) y C-19, y contra las reglas 6, 13, 14, 16 y 17 de `CLAUDE.md`
 - [x] 6.5 `docs/bitacora.md` (sección Joaquín): qué se le pidió al agente, qué se corrigió a mano y por qué
@@ -60,5 +60,5 @@
 ## Workflow follow-up
 
 - PR `feat/clientes-y-vehiculos` → `main` con `Closes #6`, revisión de un compañero (ideal: Hernán, por DD-13 y las dependencias).
-- Si CH-03 o la T1 de CH-04 ya están en `main`: `git rebase -i main` y descartar el commit provisorio antes de abrir el PR.
+- [x] Rebasear sobre `main` con CH-03 y CH-04 mergeados y descartar el commit provisorio.
 - Tras el merge: `/opsx:archive clientes-y-vehiculos` y marcar CH-06 en `CHANGES.md`.

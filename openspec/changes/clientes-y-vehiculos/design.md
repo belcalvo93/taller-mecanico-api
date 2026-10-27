@@ -4,7 +4,7 @@
 
 Motivación y alcance: ver `proposal.md`. Requisitos: `specs/clientes-y-vehiculos`.
 
-Estado de `main` al arrancar (27/10, commit `f7c4364`): están CH-01 (`infra-base`) y CH-02 (`esquema-y-migraciones`). **No están** el núcleo de CH-03 (`app/core/repository.py`, `app/core/unit_of_work.py`, `app/core/paginacion.py`) ni la T1 de CH-04 (`app/core/dependencies.py`), que según el árbol de dependencias son requisito de este change.
+Estado de `main` (27/10, commit `088185d`): están CH-01, CH-02, CH-03 (núcleo: `app/core/repository.py`, `unit_of_work.py`, `paginacion.py`) y CH-04 (autenticación, con `app/core/dependencies.py` y el `ClienteRepository` básico que creó Hernán para el registro). Ver D1.
 
 Modelos de CH-02 que se usan (no se tocan): `Cliente` (UNIQUE `documento` → `uq_cliente_documento`), `Vehiculo` (índice parcial `uq_vehiculo_patente_vigente`, CHECK `ck_vehiculo_anio_rango`), `OrdenTrabajo` y `EstadoOrden` (para "órdenes abiertas"). Todas las relaciones tienen `lazy="raise"`.
 
@@ -25,24 +25,19 @@ Datos del seed que usan los tests y el `.http`: cliente 1 = Laura (usuario 6, ve
 
 ## Decisions
 
-### D1 — Dependencias que todavía no están en `main`: commit provisorio separado
-Para poder probar de punta a punta, la rama lleva **un primer commit aparte** con versiones mínimas de:
-- `app/core/repository.py`: `BaseRepository[T](session, model)` con `get_by_id`, `get_all`, `count`, `add`, `update`, `delete` (flush, nunca commit) y `SoftDeleteRepository[T]` con `get_by_id_including_deleted` y `soft_delete`.
-- `app/core/unit_of_work.py`: `UnitOfWork(session)`, gestor de contexto async (commit al salir, rollback con excepción, no cierra la sesión).
-- `app/core/dependencies.py`: `get_usuario_actual` (lee sólo la cookie `access_token`) y `requiere_rol(*roles)` (consulta los roles vigentes en la base).
-
-**Cuando se mergeen CH-03 y la T1 de CH-04, ese commit se descarta** (`git rebase -i main` → `drop`) y quedan los de Elías y Hernán. El código de este change sólo usa este contrato, que es el que fija `CHANGES.md`:
+### D1 — Qué se usa del núcleo (CH-03) y de la autenticación (CH-04)
+Al arrancar, `main` todavía no tenía ni el núcleo ni las dependencias, así que el change se empezó con versiones mínimas propias en un commit aparte. Cuando se mergearon los PR #14 (CH-03) y #15/#16 (CH-04), ese commit se **descartó** al rebasear sobre `main`, y el change quedó usando sólo lo de Elías y Hernán:
 
 | Pieza | Lo que usa CH-06 |
 |---|---|
-| `BaseRepository` | `__init__(session, model)`, atributo `self.session`, `get_by_id(id)`, `add(entidad)` |
-| `SoftDeleteRepository` | `get_by_id(id)` que excluye los dados de baja, `soft_delete(entidad)` |
-| `UnitOfWork` | `__init__(session)`, `async with uow:` |
-| `get_usuario_actual` | dependencia que devuelve el `Usuario` (usa `.id`) o responde 401 |
-| `requiere_rol(*roles)` | devuelve una dependencia que responde 403 sin el rol; recibe los roles como texto (`"RECEPCION"`, `"ADMIN"`) |
+| `BaseRepository` (Elías) | `__init__(session, modelo)`, `self.session`, `_consulta_base()` como punto de partida de las lecturas, `get_by_id`, `add` |
+| `SoftDeleteRepository` (Elías) | `get_by_id` que excluye los dados de baja, `soft_delete` |
+| `UnitOfWork` (Elías) | `__init__(session)`, `async with uow:` |
+| `ClienteRepository` (Hernán, DD-13) | se **extiende** sin cambiar su firma `ClienteRepository(session, model_cls=Cliente)` |
+| `get_usuario_actual` (Hernán) | devuelve el `Usuario` (usa `.id`) o responde 401 |
+| `requiere_rol(*roles)` (Hernán) | roles como texto (`"RECEPCION"`, `"ADMIN"`); depende de `get_usuario_actual`; 403 sin un rol vigente en la base |
 
-Si alguna firma real difiere, se ajusta en `repository.py`/`router.py` de este módulo (cambios de una línea).
-- **Alternativa descartada**: esperar a que se mergeen. Bloquea a CH-08 (camino crítico) y la entrega es el 30/10.
+CH-05 reemplaza las dependencias por la versión real sin cambiar las firmas, así que este módulo no se toca.
 
 ### D2 — `IntegrityError` → 409 por nombre de restricción, fuera del bloque del UoW
 El servicio envuelve el `async with uow:` en un `try/except IntegrityError`. El UoW ya revirtió al salir con la excepción; recién ahí el servicio mira el nombre de la restricción que informa PostgreSQL (`exc.orig.__cause__.constraint_name`, aviso de Belén en la bitácora) y lanza `DocumentoDuplicado` (`uq_cliente_documento`) o `PatenteDuplicada` (`uq_vehiculo_patente_vigente`). Cualquier otra restricción se vuelve a lanzar (no se adivina). El router traduce los errores de dominio a `HTTPException` con mensaje propio.
@@ -74,7 +69,7 @@ La tabla de la consigna no le da `page`/`size` ni 422 (a diferencia de `/mis-ord
 
 ### D9 — Tests contra `taller_test` con el seed y la autorización real
 - Datos: fixture `sembrada` de `conftest.py` (`seed.sembrar`, bcrypt costo 4) + `vaciar_al_terminar`.
-- Sesión: se reemplaza **sólo** `get_usuario_actual` con `app.dependency_overrides`, eligiendo el usuario por un encabezado de test (`X-Usuario-Test: <id>`; sin encabezado → 401). `requiere_rol` queda el real: consulta `asignacion_rol` en la base, así que los 403 se prueban con los roles del seed y siguen valiendo cuando Hernán reemplace las dependencias (siempre que `requiere_rol` dependa de `get_usuario_actual`, como dice `CHANGES.md`).
+- Sesión: se reemplaza **sólo** `get_usuario_actual` con `app.dependency_overrides`, eligiendo el usuario por un encabezado de test (`X-Usuario-Test: <id>`; sin encabezado → 401). `requiere_rol` queda el real: consulta `asignacion_rol` en la base, así que los 403 se prueban con los roles del seed y siguen valiendo cuando CH-05 reemplace las dependencias (`requiere_rol` depende de `get_usuario_actual`).
 - El 401 sin cookie se prueba **sin** reemplazo, con la dependencia de verdad.
 - "Órdenes abiertas/finales" se arman insertando órdenes directo en `taller_test` con `tests/helpers.insertar`.
 - Precarga sin N+1: se cuentan las sentencias con un listener `before_cursor_execute` (2 consultas para el cliente, con 2 y con 5 vehículos).
@@ -84,12 +79,11 @@ El test de CH-01 exigía que el grupo protegido estuviera vacío y que las únic
 
 ## Risks / Trade-offs
 
-- **Conflicto con CH-03/CH-04** → el núcleo provisorio está aislado en un commit; al rebasear se descarta y, si alguna firma cambia, se ajusta este módulo (D1).
+- **CH-05 cambia las dependencias** → mantiene las firmas (D1); los tests de este módulo corren contra la versión que esté en `main`.
 - **`/mis-vehiculos` como lista** → si el profe espera el envoltorio, se cambia el `response_model` y el método del repositorio (D6). Se consulta en la clase del 27/10.
 - **Normalizar la patente** (mayúsculas, sin espacios) es una decisión nuestra: la consigna no la pide, pero sin ella la unicidad se esquiva con minúsculas.
 - **Carrera baja de vehículo vs. alta de orden** (dos peticiones a la vez) → concurrencia, fuera de alcance (cap. 7).
 
 ## Open Questions
 
-- Confirmar con Hernán la firma de `requiere_rol` (¿texto o enum `Rol`?) y que dependa de `get_usuario_actual`.
 - Confirmar en clase si `/mis-vehiculos` va con lista o con envoltorio (D6).

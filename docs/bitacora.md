@@ -130,11 +130,12 @@ _(sin entradas todavía)_
 
 ### 2026-10-27 · CH-06 clientes-y-vehiculos
 - **Fecha:** 2026-10-27
-- **Qué le pidió al agente:** armar el change completo: `/opsx:propose clientes-y-vehiculos` (proposal, spec, design y tasks) y después `/opsx:apply` con TDD estricto: `ClienteRepository` (DD-13), `VehiculoRepository` con baja lógica y "órdenes abiertas" según `estado_orden.es_final`, UoW del módulo, contratos, servicio, router en el grupo protegido, tests contra `taller_test` y el `.http` de C-19. Sin líneas de atribución en los commits.
+- **Qué le pidió al agente:** armar el change completo: `/opsx:propose clientes-y-vehiculos` (proposal, spec, design y tasks) y después `/opsx:apply` con TDD estricto: `ClienteRepository` (DD-13), `VehiculoRepository` con baja lógica y "órdenes abiertas" según `estado_orden.es_final`, UoW del módulo, contratos, servicio, router en el grupo protegido, tests contra `taller_test` y el `.http` de C-19. Después, rebasear sobre `main` cuando se mergearon CH-03 y CH-04.
 - **Qué corrigió a mano y por qué:** _(completar al revisar el PR)_
 
 **Notas de la sesión**
-- Al arrancar, `main` no tenía el núcleo de CH-03 (`repository.py`, `unit_of_work.py`) ni la T1 de CH-04 (`dependencies.py`). Para no frenar a CH-08 se escribieron versiones mínimas con las firmas de `CHANGES.md`, **en un commit aparte y marcado PROVISORIO**: cuando se mergeen los de Elías y Hernán, ese commit se descarta (`git rebase -i main` → `drop`). Lo que usa CH-06 de ese contrato está en design D1.
+- Al arrancar, `main` no tenía el núcleo de CH-03 ni la T1 de CH-04. Para no frenar se escribieron versiones mínimas en un commit aparte marcado PROVISORIO. Cuando se mergearon los PR #14, #15 y #16, se rebaseó sobre `main` y ese commit se **descartó**: el change usa sólo lo de Elías y Hernán (design D1).
+- Al rebasear: `ClienteRepository` ya lo había creado Hernán (DD-13), así que se resolvió el conflicto **extendiendo el suyo** sin cambiar su firma `(session, model_cls=Cliente)`. Del núcleo de Elías se adaptó `_consulta()` → `_consulta_base()` y `model` → `modelo`. Las firmas de `get_usuario_actual` y `requiere_rol` coincidieron (roles como texto).
 - Unicidad (RN-01): el servicio no consulta antes; envuelve el `async with uow:` en `try/except IntegrityError` y mira el **nombre** de la restricción (`uq_cliente_documento`, `uq_vehiculo_patente_vigente`), como avisó Belén. Se atrapa afuera del bloque porque adentro la sesión queda abortada.
 - `POST /clientes/{id}/vehiculos` busca el cliente antes del INSERT: sin eso, un cliente inexistente con patente repetida daba 409 en vez de 404 (PostgreSQL verifica el índice único antes que la FK).
 - RN-18: los ids de ruta van de 1 a 2147483647 (un id más grande hacía fallar a asyncpg con 500) y los textos no aceptan el carácter NUL (PostgreSQL lo rechaza).
@@ -143,7 +144,7 @@ _(sin entradas todavía)_
 - `tests/test_grupos_de_rutas.py` ya no exige que el grupo protegido esté vacío (sí, que no tenga dependencias): cada change verifica sus rutas en su propio archivo, así no nos pisamos en ese test.
 - Con FastAPI nuevo `include_router` es perezoso: para ver en qué grupo está cada ruta, el test arma una app con ese grupo solo y lee `openapi()`.
 - Mutaciones para comprobar que los tests muerden: sacar la traducción del 409, el 404 previo, el chequeo de órdenes abiertas, el tope del id, el `requiere_rol` de una ruta, el filtro de vigentes y el de dueño → cada una hace fallar al menos un test. `populate_existing` se sacó porque ningún test lo justificaba.
-- Suite: 263 → 403 passed. C-19 corrido contra el servidor real con `seed.py` (el login se reemplazó por una cookie firmada a mano hasta que exista `/auth/login`).
+- Suite sobre `main` con CH-03 y CH-04: 372 → 500 passed. C-19 corrido contra uvicorn después de `seed.py`, con el login real de recepción: 200 con la cookie HttpOnly, 204, 201, 409, 404 y 409, como dice cada comentario.
 
 ## Pendientes para CH-09 (README)
 

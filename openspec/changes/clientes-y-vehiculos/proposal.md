@@ -8,7 +8,7 @@ La recepción no puede registrar a quien trae un vehículo: no hay endpoints de 
 
 ## What Changes
 
-- **`ClienteRepository`** (hereda de `BaseRepository[Cliente]`, firma `ClienteRepository(session)`; DD-13): lo importa el UoW de `usuarios` para el registro. Extendido con `get_con_vehiculos_vigentes(id)` (precarga declarada en el método).
+- **`ClienteRepository`** (lo creó Hernán en CH-04 con la firma de DD-13 y lo usa el registro): se extiende con `get_con_vehiculos_vigentes(id)` (precarga declarada en el método).
 - **`VehiculoRepository`** (hereda de `SoftDeleteRepository[Vehiculo]`): `listar_vigentes_de_usuario(usuario_id)` y `tiene_ordenes_abiertas(vehiculo_id)` (estado no final según `estado_orden.es_final`, con los modelos de CH-02 y sin depender del módulo `ordenes`).
 - **`ClientesUnitOfWork`** con los dos repositorios sobre la misma sesión, y la dependencia `get_clientes_uow` con la que el router lo construye.
 - **Contratos** (`schemas.py`) separados de los modelos, con `extra="forbid"`.
@@ -35,5 +35,5 @@ Fuera de alcance: autenticación y la versión real de `get_usuario_actual`/`req
 
 - **Código nuevo**: `app/modules/clientes/{repository,unit_of_work,schemas,service,router}.py`, `tests/test_clientes_*.py`, `test/C-19_baja_y_reuso_de_patente.http`.
 - **Código tocado**: `main.py` (una línea de import y la línea `include_router` de CH-06 en el grupo protegido); `tests/test_grupos_de_rutas.py` (deja de exigir que el grupo protegido esté vacío; ver design D10); `docs/bitacora.md` (sección Joaquín).
-- **Dependencias de otros changes que todavía no están en `main`** (ver design D1): núcleo de CH-03 (`app/core/repository.py`, `app/core/unit_of_work.py`) y la T1 de CH-04 (`app/core/dependencies.py`). Van en un commit separado y marcado como provisorio, para descartarlo cuando se mergeen los de Elías y Hernán.
+- **Usa lo ya mergeado** (ver design D1): el núcleo de CH-03 y las dependencias de CH-04. `app/modules/clientes/repository.py` ya existía (lo creó Hernán con la firma de DD-13): se extiende sin cambiar esa firma.
 - **Otros changes**: CH-04 importa `ClienteRepository(session)`; CH-08 usa `VehiculoRepository.get_by_id` (ya excluye los dados de baja) para no aceptar vehículos dados de baja en órdenes nuevas.
