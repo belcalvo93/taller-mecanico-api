@@ -11,6 +11,7 @@ from app.core.paginacion import PaginaInexistente, responder_pagina_inexistente
 import app.modules.modelos  # noqa: F401  (registra los 13 mapeos; sin esto las relaciones entre módulos no se resuelven)
 from app.modules.health.router import router as health_router
 from app.modules.usuarios.router import router as auth_router
+from app.modules.clientes.router import router as clientes_router
 
 
 async def _calcular_hash_ficticio(
@@ -69,7 +70,7 @@ rutas_abiertas.include_router(health_router)
 # (las anteriores copian las rutas en el momento de incluirlas).
 rutas_abiertas.include_router(auth_router)
 # CH-05: rutas_protegidas.include_router(usuarios_router)
-# CH-06: rutas_protegidas.include_router(clientes_router)
+rutas_protegidas.include_router(clientes_router)  # CH-06
 # CH-07: rutas_protegidas.include_router(repuestos_router)
 # CH-08: rutas_protegidas.include_router(ordenes_router)
 
