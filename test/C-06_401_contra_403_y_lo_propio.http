@@ -1,0 +1,74 @@
+# C-06 — 401 contra 403 y lo propio. Sin cookie → 401; con sesión pero sin el
+# rol → 403; lo propio (/mis-ordenes) funciona sin rol de personal. (RN-04, RN-17)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Dos sesiones: Laura (sólo CLIENTE) y recepción. Cada una se guarda con
+# "# @name" y se manda a mano con su Cookie (# @no-cookie-jar).
+
+@base = http://localhost:8000
+
+### 1. Sin cookie (cualquiera de las ocho rutas)
+# Esperado: 401
+GET {{base}}/ordenes
+# @no-cookie-jar
+
+### 2. Login de Laura
+# Esperado: 200
+# @name loginLaura
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "cliente@example.com", "password": "Cliente.2026"}
+
+### 3. Laura lista las órdenes del personal
+# Esperado: 403
+# @no-cookie-jar
+GET {{base}}/ordenes
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 4. Laura crea una orden
+# Esperado: 403
+# @no-cookie-jar
+POST {{base}}/ordenes
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+Content-Type: application/json
+
+{"vehiculo_id": 1, "falla": "x", "items": [{"repuesto_id": 1, "cantidad": 1}]}
+
+### 5. Laura ve sus órdenes
+# Esperado: 200 con sólo la orden 1 (la 2 es de Jorge)
+# @no-cookie-jar
+GET {{base}}/mis-ordenes
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 6. Laura pide la orden ajena
+# Esperado: 403
+# @no-cookie-jar
+GET {{base}}/ordenes/2
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 7. Laura pide /auth/yo
+# Esperado: 200
+# @no-cookie-jar
+GET {{base}}/auth/yo
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 8. Login de recepción
+# Esperado: 200
+# @name loginRecepcion
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 9. La recepción lista las órdenes
+# Esperado: 200 con las dos órdenes del seed
+# @no-cookie-jar
+GET {{base}}/ordenes
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
+
+### 10. La recepción pide /mis-ordenes (no tiene ficha de cliente)
+# Esperado: 200 con "items": [], "total": 0, "pages": 1
+# @no-cookie-jar
+GET {{base}}/mis-ordenes
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}

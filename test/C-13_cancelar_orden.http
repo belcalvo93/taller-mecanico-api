@@ -1,0 +1,34 @@
+# C-13 — Cancelar una orden: el dueño cancela la suya (200) y no la ajena
+# (403, antes que cualquier 409). (RN-12, RN-17)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: orden 1 PENDIENTE de Laura; orden 2 EN_REPARACION de Jorge.
+# Falta el tramo "terminada → 409": necesita terminar una orden por la API y se
+# agrega cuando CH-07 esté en main (tarea 9.9 de CH-08).
+
+@base = http://localhost:8000
+
+### 1. Login de Laura
+# @name loginLaura
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "cliente@example.com", "password": "Cliente.2026"}
+
+### 2. Laura cancela la orden 2 (ajena, además EN_REPARACION)
+# Esperado: 403 (el permiso se decide antes que el estado)
+# @no-cookie-jar
+POST {{base}}/ordenes/2/cancelar
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 3. Laura cancela la orden 1 (suya, PENDIENTE)
+# Esperado: 200 con "estado": "CANCELADA" y una línea de historial PENDIENTE -> CANCELADA con "usuario_id": 6
+# @no-cookie-jar
+POST {{base}}/ordenes/1/cancelar
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 4. Laura vuelve a cancelar la orden 1
+# Esperado: 409 "La orden está en CANCELADA: no se puede cancelar"
+# @no-cookie-jar
+POST {{base}}/ordenes/1/cancelar
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
