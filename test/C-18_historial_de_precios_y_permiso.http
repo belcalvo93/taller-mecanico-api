@@ -1,0 +1,81 @@
+# C-18 — Cambiar el precio de un repuesto y después sólo su descripción: el historial
+# suma una línea sólo con el cambio de precio; la recepción recibe 403. (RN-13, RN-04)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: repuesto 1 FIL-001 "Filtro de aceite", $8500, con un cambio de precio
+# previo (8000.00 -> 8500.00) en el historial.
+# Dos sesiones a la vez (administrador y recepción): cada pedido lleva su propia cookie.
+
+@base = http://localhost:8000
+
+### 1. Login del administrador
+# Esperado: 200 y Set-Cookie: access_token=...; HttpOnly; Max-Age=1800; Path=/; SameSite=lax
+# @name loginAdmin
+# @no-cookie-jar
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+### 2. Login de la recepción
+# Esperado: 200 y Set-Cookie: access_token=...
+# @name loginRecepcion
+# @no-cookie-jar
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 3. El administrador cambia el precio
+# Esperado: 200
+# {"id": 1, "codigo": "FIL-001", "descripcion": "Filtro de aceite", "precio": "9500.00", "stock": 10}
+# @no-cookie-jar
+PATCH {{base}}/repuestos/1
+Content-Type: application/json
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+{"precio": "9500.00"}
+
+### 4. Historial de precios: una línea nueva
+# Esperado: 200 con dos líneas, en orden:
+# [{"id": 1, "precio_anterior": "8000.00", "precio_nuevo": "8500.00", ...},
+#  {"id": 2, "precio_anterior": "8500.00", "precio_nuevo": "9500.00", "usuario_id": 1, ...}]
+# @no-cookie-jar
+GET {{base}}/repuestos/1/precios
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+### 5. El administrador cambia sólo la descripción
+# Esperado: 200 con "descripcion": "Filtro de aceite sintético" y "precio": "9500.00"
+# @no-cookie-jar
+PATCH {{base}}/repuestos/1
+Content-Type: application/json
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+{"descripcion": "Filtro de aceite sintético"}
+
+### 6. El historial no suma ninguna línea
+# Esperado: 200 con las mismas dos líneas del paso 4
+# @no-cookie-jar
+GET {{base}}/repuestos/1/precios
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+### 7. La recepción intenta ver el historial
+# Esperado: 403 {"detail": "Sin permiso: rol insuficiente"}
+# @no-cookie-jar
+GET {{base}}/repuestos/1/precios
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
+
+### 8. La recepción intenta cambiar el precio
+# Esperado: 403 {"detail": "Sin permiso: rol insuficiente"} (y el precio sigue en 9500.00)
+# @no-cookie-jar
+PATCH {{base}}/repuestos/1
+Content-Type: application/json
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
+
+{"precio": "1.00"}
+
+### 9. La recepción sí puede consultar el catálogo
+# Esperado: 200 con "precio": "9500.00"
+# @no-cookie-jar
+GET {{base}}/repuestos/1
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}

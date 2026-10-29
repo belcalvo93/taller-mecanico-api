@@ -41,7 +41,7 @@
 
 ## 5. Casos `.http` (`C-16` y `C-18`) y bitácora
 
-- [ ] 5.1 Crear `test/C-16_busqueda_con_comillas.http` y `test/C-18_historial_de_precios_y_permiso.http` con los comentarios de resultado esperado.
-- [ ] 5.2 Completar la sección de Bruno en `docs/bitacora.md`.
-- [ ] 5.3 Correr la suite completa de `pytest` y verificar `git status` limpio.
-- [ ] 5.4 Commit: `docs(repuestos-y-stock): casos C-16 y C-18 en .http y entrada en bitácora`
+- [x] 5.1 Crear `test/C-16_busqueda_con_comillas.http` y `test/C-18_historial_de_precios_y_permiso.http` con los comentarios de resultado esperado.
+- [x] 5.2 Completar la sección de Bruno en `docs/bitacora.md`.
+- [x] 5.3 Correr la suite completa de `pytest` y verificar `git status` limpio.
+- [x] 5.4 Commit: `docs(repuestos-y-stock): casos C-16 y C-18 en .http y entrada en bitácora`

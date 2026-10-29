@@ -1,0 +1,54 @@
+# C-16 — Búsqueda de repuestos con ' OR '1'='1, paginación con filtro y PATCH parcial.
+# El texto buscado se pasa como parámetro ligado: las comillas no alteran el SQL. (RN-14, RN-18)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: 1 FIL-001 "Filtro de aceite", 2 FRE-010 "Pastillas de freno delanteras"
+# ($32000, stock 4), 3 BUJ-100 "Bujía de encendido", 4 ACE-530 "Aceite 5W30 por litro".
+# Una sola sesión (administrador): alcanza con el cookie jar de REST Client.
+
+@base = http://localhost:8000
+
+### 1. Login del administrador
+# Esperado: 200 y Set-Cookie: access_token=...; HttpOnly; Max-Age=1800; Path=/; SameSite=lax
+# @name loginAdmin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+### 2. Búsqueda con comillas (' OR '1'='1)
+# Esperado: 200 {"items": [], "total": 0, "page": 1, "size": 20, "pages": 1}
+# (se busca el texto literal; no devuelve todo el catálogo ni da error)
+GET {{base}}/repuestos?q=%27%20OR%20%271%27%3D%271
+
+### 3. Paginación con filtro: q=freno, de a una por página
+# Esperado: 200 con un solo ítem (FRE-010), "total": 1, "page": 1, "size": 1, "pages": 1
+GET {{base}}/repuestos?q=freno&size=1
+
+### 4. Página que no existe con ese filtro
+# Esperado: 422 {"detail": "La página 2 no existe: hay 1"}
+GET {{base}}/repuestos?q=freno&size=1&page=2
+
+### 5. Tamaño de página fuera de rango
+# Esperado: 422
+GET {{base}}/repuestos?size=500
+
+### 6. PATCH parcial: sólo la descripción
+# Esperado: 200
+# {"id": 2, "codigo": "FRE-010", "descripcion": "Pastillas de freno traseras", "precio": "32000.00", "stock": 4}
+# (sólo cambió lo enviado: el precio y el stock quedan como estaban)
+PATCH {{base}}/repuestos/2
+Content-Type: application/json
+
+{"descripcion": "Pastillas de freno traseras"}
+
+### 7. PATCH que intenta cambiar el stock
+# Esperado: 422 (el stock sólo cambia con movimientos: alta, reposición u orden terminada)
+PATCH {{base}}/repuestos/2
+Content-Type: application/json
+
+{"stock": 100}
+
+### 8. El stock no cambió
+# Esperado: 200 con "stock": 4
+GET {{base}}/repuestos/2
