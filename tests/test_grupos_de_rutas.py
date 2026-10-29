@@ -1,4 +1,4 @@
-"""Dos grupos de rutas en main.py; el protegido nace sin dependencias.
+"""Dos grupos de rutas en main.py; el protegido lleva una sola vez el control del cambio obligatorio (CH-05).
 
 Desde CH-06 el grupo protegido tiene rutas: cada change de la ola 2 agrega las
 suyas y verifica en su propio archivo de tests que están en el grupo correcto
@@ -7,6 +7,7 @@ suyas y verifica en su propio archivo de tests que están en el grupo correcto
 from fastapi import APIRouter
 
 import main
+from app.core.dependencies import verificar_cambio_password_obligatorio
 
 
 def test_existen_los_dos_grupos_y_son_distintos():
@@ -15,9 +16,13 @@ def test_existen_los_dos_grupos_y_son_distintos():
     assert main.rutas_abiertas is not main.rutas_protegidas
 
 
-def test_el_grupo_protegido_no_tiene_dependencias():
-    # CH-05 le agrega, una sola vez, el control del cambio obligatorio.
-    assert main.rutas_protegidas.dependencies == []
+def test_el_grupo_protegido_tiene_una_sola_vez_el_cambio_obligatorio():
+    assert main.rutas_abiertas.dependencies == []
+    assert len(main.rutas_protegidas.dependencies) == 1
+    assert (
+        main.rutas_protegidas.dependencies[0].dependency
+        is verificar_cambio_password_obligatorio
+    )
 
 
 def test_las_rutas_de_salud_siguen_en_la_app():

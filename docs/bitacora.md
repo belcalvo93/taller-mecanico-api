@@ -122,6 +122,14 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 - C-01 usa rutas de CH-05 (`/usuarios/{id}/roles`) y CH-06 (`/clientes/{id}`): hasta que estén en main esas peticiones dan 404; con ellas montadas dan 422.
 - El control de `debe_cambiar_password` (403 en el grupo protegido) queda para CH-05: el login de `nuevo@example.com` responde 200 con `debe_cambiar_password: true`.
 
+### 2026-10-28 · CH-05 autorizacion-y-roles
+- **Fecha:** 2026-10-28
+- **Qué le pidió al agente:** Generar la propuesta SDD para `CH-05` (`autorizacion-y-roles`) e implementar con TDD estricto: dependencia `verificar_cambio_password_obligatorio` en `app/core/dependencies.py` montada una única vez sobre `rutas_protegidas` en `main.py` (sin tocar las firmas de `get_usuario_actual` ni `requiere_rol`), alta de personal con contraseña provisoria (`POST /usuarios`), consulta, asignación y revocación de roles (`GET/POST/DELETE /usuarios/{id}/roles`) con autoprotección del administrador (`RN-05`) y preservación del historial (`RN-03`), listado paginado `GET /eventos` con el núcleo de `CH-03` y los archivos `.http` de `C-07`, `C-08` y `C-09`.
+- **Qué corrigió a mano y por qué:**
+  - En `POST /usuarios` (`crear_personal`), `requiere_rol("ADMIN")` deja abierta una transacción de sólo lectura en la sesión de la petición; se exigió cerrarla con `rollback()` antes de llamar a `hashear_password` para que `bcrypt` nunca corra con una conexión tomada (regla 9), verificado con un test espía sobre `bcrypt.hashpw`.
+  - En `POST /usuarios/{id}/roles`, se validó en el contrato (`AsignarRolRequest`) que `vence_en` sin zona horaria (naive) o en el pasado responda `422 Unprocessable Entity` (nunca `409`, caso `C-07`). Además, al reasignar un rol cuya asignación anterior había vencido (`vence_en <= ahora` con `revocada_en IS NULL`), el servicio cierra la fila vencida con `revocada_en = ahora` antes de insertar la nueva para respetar el índice único parcial `uq_asignacion_rol_abierta` sin borrar historial (`RN-03`).
+  - Se validaron los parámetros de ruta `id` (`1..2147483647`) y `rol` en el contrato para que entradas inválidas o fuera del rango de `INTEGER` respondan `422` sin ejecutar el servicio (`C-01`, `RN-18`).
+
 ## Bruno
 
 _(sin entradas todavía)_

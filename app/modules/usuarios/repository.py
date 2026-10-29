@@ -1,10 +1,12 @@
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import ahora_utc
+from app.core.paginacion import Pagina, ParametrosPagina
 from app.core.repository import BaseRepository
 from app.modules.usuarios.models import (
     AsignacionRol,
@@ -52,6 +54,41 @@ class AsignacionRolRepository(BaseRepository[AsignacionRol]):
         )
         result = await self.session.exec(statement)
         return list(result.all())
+
+    async def listar_asignaciones_usuario(self, usuario_id: int) -> list[AsignacionRol]:
+        statement = (
+            self._consulta_base()
+            .where(AsignacionRol.usuario_id == usuario_id)
+            .order_by(AsignacionRol.id.asc())
+        )
+        result = await self.session.exec(statement)
+        return list(result.all())
+
+    async def obtener_asignacion_abierta(
+        self, usuario_id: int, rol: str
+    ) -> AsignacionRol | None:
+        statement = self._consulta_base().where(
+            AsignacionRol.usuario_id == usuario_id,
+            AsignacionRol.rol == rol,
+            AsignacionRol.revocada_en.is_(None),
+        )
+        result = await self.session.exec(statement)
+        return result.first()
+
+    async def contar_admins_vigentes(self, ahora: datetime | None = None) -> int:
+        instante = ahora or ahora_utc()
+        statement = (
+            select(func.count(func.distinct(AsignacionRol.usuario_id)))
+            .join(Usuario, Usuario.id == AsignacionRol.usuario_id)
+            .where(
+                Usuario.activo == True,  # noqa: E712
+                AsignacionRol.rol == "ADMIN",
+                AsignacionRol.revocada_en.is_(None),
+                (AsignacionRol.vence_en.is_(None) | (AsignacionRol.vence_en > instante)),
+            )
+        )
+        result = await self.session.exec(statement)
+        return int(result.one() or 0)
 
 
 class IntentoAccesoRepository(BaseRepository[IntentoAcceso]):
@@ -102,3 +139,9 @@ class EventoSeguridadRepository(BaseRepository[EventoSeguridad]):
     async def registrar(self, actor: str, accion: str) -> EventoSeguridad:
         evento = EventoSeguridad(actor=actor, accion=accion)
         return await self.add(evento)
+
+    async def listar_paginado(
+        self, pagina: ParametrosPagina
+    ) -> Pagina[EventoSeguridad]:
+        consulta = self._consulta_base().order_by(EventoSeguridad.id.asc())
+        return await self._paginar(consulta, pagina)

@@ -3,14 +3,15 @@ import secrets
 from contextlib import asynccontextmanager
 
 import bcrypt
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 
 from app.core.config import Settings, get_settings
 from app.core.database import crear_fabrica_sesiones, crear_motor
+from app.core.dependencies import verificar_cambio_password_obligatorio
 from app.core.paginacion import PaginaInexistente, responder_pagina_inexistente
 import app.modules.modelos  # noqa: F401  (registra los 13 mapeos; sin esto las relaciones entre módulos no se resuelven)
 from app.modules.health.router import router as health_router
-from app.modules.usuarios.router import router as auth_router
+from app.modules.usuarios.router import router as auth_router, usuarios_router
 from app.modules.clientes.router import router as clientes_router
 
 
@@ -61,7 +62,10 @@ app = FastAPI(title="Taller mecánico API", lifespan=lifespan)
 app.add_exception_handler(PaginaInexistente, responder_pagina_inexistente)
 
 rutas_abiertas = APIRouter()
-rutas_protegidas = APIRouter()  # CH-05 le agrega, una sola vez, el control del cambio obligatorio
+# CH-05: control del cambio obligatorio de contraseña declarado una sola vez (regla 12, RN-06)
+rutas_protegidas = APIRouter(
+    dependencies=[Depends(verificar_cambio_password_obligatorio)]
+)
 
 rutas_abiertas.include_router(health_router)
 
@@ -69,7 +73,7 @@ rutas_abiertas.include_router(health_router)
 # incluir el grupo en la app: así funciona en todas las versiones de FastAPI
 # (las anteriores copian las rutas en el momento de incluirlas).
 rutas_abiertas.include_router(auth_router)
-# CH-05: rutas_protegidas.include_router(usuarios_router)
+rutas_protegidas.include_router(usuarios_router)  # CH-05
 rutas_protegidas.include_router(clientes_router)  # CH-06
 # CH-07: rutas_protegidas.include_router(repuestos_router)
 # CH-08: rutas_protegidas.include_router(ordenes_router)
