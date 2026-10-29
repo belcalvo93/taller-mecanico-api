@@ -15,14 +15,14 @@
 - [x] 1.3 ROJO→VERDE `MovimientoStockRepository` y `HistorialPrecioRepository`: `listar_por_repuesto(repuesto_id)` ordenado por `id` ascendente; `update` y `delete` bloqueados (`RN-15`).
 - [x] 1.4 ROJO→VERDE `RepuestoRepository.mover_stock(repuesto, cantidad, *, motivo, usuario_id, orden_id=None)`: suma o descuenta `repuesto.stock`, agrega el `MovimientoStock` y hace `flush()` sin `commit()`; lanza `StockInsuficiente` si `stock + cantidad < 0` sin dejar cambios y `ValueError` si `cantidad == 0`; si el bloque del UoW falla después, se revierte todo (`RN-14`, `DD-14`).
 - [x] 1.5 ROJO→VERDE `RepuestosUnitOfWork(session)`: compone `repuestos`, `movimientos` e `historial_precios` compartiendo la misma sesión.
-- [ ] 1.6 Commit: `feat(repuestos-y-stock): repositorios y unit of work de repuestos`
+- [x] 1.6 Commit: `feat(repuestos-y-stock): repositorios y unit of work de repuestos`
 
 ## 2. Contratos (`schemas.py`)
 
-- [ ] 2.1 ROJO→VERDE `RepuestoCrear`: `extra="forbid"` (rechaza `stock` y `borrado_en`), textos sin espacios alrededor ni carácter NUL, `precio > 0`, `stock_inicial >= 0`.
-- [ ] 2.2 ROJO→VERDE `RepuestoActualizar` y `ReposicionCrear`: `extra="forbid"` (rechaza `stock` y `codigo` en `PATCH`), rechaza `null` explícito en `descripcion`/`precio`, `cantidad > 0` en reposición y `motivo` con valor por defecto `"Reposición"`.
-- [ ] 2.3 ROJO→VERDE Salidas `RepuestoLeer` (sin `borrado_en`), `MovimientoStockLeer` e `HistorialPrecioLeer`.
-- [ ] 2.4 Commit: `feat(repuestos-y-stock): contratos de entrada y salida`
+- [x] 2.1 ROJO→VERDE `RepuestoCrear`: `extra="forbid"` (rechaza `stock` y `borrado_en`), textos sin espacios alrededor ni carácter NUL, `precio > 0`, `stock_inicial >= 0`.
+- [x] 2.2 ROJO→VERDE `RepuestoActualizar` y `ReposicionCrear`: `extra="forbid"` (rechaza `stock` y `codigo` en `PATCH`), rechaza `null` explícito en `descripcion`/`precio`, `cantidad > 0` en reposición y `motivo` con valor por defecto `"Reposición"`.
+- [x] 2.3 ROJO→VERDE Salidas `RepuestoLeer` (sin `borrado_en`), `MovimientoStockLeer` e `HistorialPrecioLeer`.
+- [x] 2.4 Commit: `feat(repuestos-y-stock): contratos de entrada y salida`
 
 ## 3. Servicio (`service.py`)
 
