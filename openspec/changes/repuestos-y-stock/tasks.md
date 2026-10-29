@@ -26,18 +26,18 @@
 
 ## 3. Servicio (`service.py`)
 
-- [ ] 3.1 ROJO→VERDE `crear_repuesto`: con `stock_inicial > 0` usa `uow.repuestos.mover_stock` (`motivo="Stock inicial"`); con `stock_inicial == 0` deja `stock=0` sin fila en `movimiento_stock`; traduce `uq_repuesto_codigo_vigente` a `CodigoRepuestoDuplicado`.
-- [ ] 3.2 ROJO→VERDE `actualizar_repuesto`: si cambia `precio`, inserta en `historial_precio_repuesto` en la misma transacción; si sólo cambia `descripcion` o el precio es igual al actual, no inserta historial.
-- [ ] 3.3 ROJO→VERDE `dar_de_baja_repuesto` (soft delete sin 409 aunque esté en orden abierta), `reponer_stock` y consultas de detalle/movimientos/precios.
+- [x] 3.1 ROJO→VERDE `crear_repuesto`: con `stock_inicial > 0` usa `uow.repuestos.mover_stock` (`motivo="Stock inicial"`); con `stock_inicial == 0` deja `stock=0` sin fila en `movimiento_stock`; traduce `uq_repuesto_codigo_vigente` a `CodigoRepuestoDuplicado`.
+- [x] 3.2 ROJO→VERDE `actualizar_repuesto`: si cambia `precio`, inserta en `historial_precio_repuesto` en la misma transacción; si sólo cambia `descripcion` o el precio es igual al actual, no inserta historial.
+- [x] 3.3 ROJO→VERDE `dar_de_baja_repuesto` (soft delete sin 409 aunque esté en orden abierta), `reponer_stock` y consultas de detalle/movimientos/precios.
 
 ## 4. Rutas HTTP y montaje en `main.py` (`router.py`, `main.py`)
 
-- [ ] 4.1 ROJO→VERDE `GET /repuestos` y `GET /repuestos/{id}`: 200 paginado, búsqueda con `q` (`C-16`), 404 en inexistente o dado de baja, 422 en `page` fuera de rango o `id` inválido.
-- [ ] 4.2 ROJO→VERDE `POST /repuestos`: 201 con y sin `stock_inicial`, 409 en código vigente repetido, 201 al reutilizar el código de un repuesto dado de baja.
-- [ ] 4.3 ROJO→VERDE `PATCH /repuestos/{id}`, `DELETE /repuestos/{id}`, `POST /repuestos/{id}/reponer`, `GET /repuestos/{id}/movimientos` y `GET /repuestos/{id}/precios` (`C-18`).
-- [ ] 4.4 ROJO→VERDE Permisos: 401 sin cookie en las 8 rutas; `CLIENTE` → 403 en todas; `RECEPCION` y `MECANICO` → 200 en los 2 `GET` de catálogo y 403 en las 6 rutas de `ADMIN` (`C-18`).
-- [ ] 4.5 Montar `repuestos_router` en `main.py` dentro de `rutas_protegidas` y verificar que las 8 rutas estén en el grupo protegido.
-- [ ] 4.6 Commit: `feat(repuestos-y-stock): servicio y rutas HTTP`
+- [x] 4.1 ROJO→VERDE `GET /repuestos` y `GET /repuestos/{id}`: 200 paginado, búsqueda con `q` (`C-16`), 404 en inexistente o dado de baja, 422 en `page` fuera de rango o `id` inválido.
+- [x] 4.2 ROJO→VERDE `POST /repuestos`: 201 con y sin `stock_inicial`, 409 en código vigente repetido, 201 al reutilizar el código de un repuesto dado de baja.
+- [x] 4.3 ROJO→VERDE `PATCH /repuestos/{id}`, `DELETE /repuestos/{id}`, `POST /repuestos/{id}/reponer`, `GET /repuestos/{id}/movimientos` y `GET /repuestos/{id}/precios` (`C-18`).
+- [x] 4.4 ROJO→VERDE Permisos: 401 sin cookie en las 8 rutas; `CLIENTE` → 403 en todas; `RECEPCION` y `MECANICO` → 200 en los 2 `GET` de catálogo y 403 en las 6 rutas de `ADMIN` (`C-18`).
+- [x] 4.5 Montar `repuestos_router` en `main.py` dentro de `rutas_protegidas` y verificar que las 8 rutas estén en el grupo protegido.
+- [x] 4.6 Commit: `feat(repuestos-y-stock): servicio y rutas HTTP`
 
 ## 5. Casos `.http` (`C-16` y `C-18`) y bitácora
 
