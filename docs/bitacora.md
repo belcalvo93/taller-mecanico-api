@@ -132,7 +132,18 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 
 ## Bruno
 
-_(sin entradas todavía)_
+### 2026-10-29 · CH-07 repuestos-y-stock
+- **Fecha:** 2026-10-29
+- **Qué le pidió al agente:** armar el change completo con TDD estricto: `RepuestoRepository` (baja lógica, `listar` con búsqueda por parámetro ligado y bloqueo de `stock` en `update`), repositorios de sólo agregado, `RepuestosUnitOfWork`, contratos con `extra="forbid"`, servicio, las 8 rutas en el grupo protegido y los `.http` de C-16 y C-18. Antes de empezar le pedí que adaptara el diseño a lo que coordinó Elías para CH-08.
+- **Qué corrigió a mano y por qué:**
+  - El punto único de escritura de stock iba en el servicio (`registrar_movimiento_stock`). Lo pasé al repositorio como `RepuestoRepository.mover_stock(repuesto, cantidad, *, motivo, usuario_id, orden_id=None)`, como lo espera Elías: no hace `commit()` ni abre el UoW, porque órdenes lo llama dentro de su propia transacción y, si faltara stock en el segundo ítem, un commit propio dejaría escrituras a medias (RN-13, caso C-11).
+  - `StockInsuficiente` se define en `app/modules/repuestos/repository.py` para que órdenes la importe de ahí. La restricción de la base conserva su nombre `ck_repuesto_stock_no_negativo`.
+
+**Notas**
+- Orden de merge acordado con Elías: primero CH-07, después CH-08. Cuando se mergee CH-07 hay que avisarle para que descuente el stock al terminar la orden; si su firma quedó distinta, que me avise.
+- En `main.py` sólo se activó la línea de CH-07; la de órdenes queda comentada y habrá un conflicto chico al mergear CH-08.
+- Alta con `stock_inicial` y `POST /repuestos/{id}/reponer` pasan por `mover_stock`; el stock no se edita por PATCH (422). `DELETE /repuestos/{id}` es baja lógica y nunca da 409 (DD-14).
+- Con `stock_inicial: 0` el repuesto se crea sin fila en `movimiento_stock`, porque la restricción `ck_movimiento_stock_cantidad_no_cero` prohíbe `cantidad = 0`.
 
 ## Joaquín
 

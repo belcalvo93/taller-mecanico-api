@@ -14,6 +14,7 @@ from app.modules.health.router import router as health_router
 from app.modules.usuarios.router import router as auth_router, usuarios_router
 from app.modules.clientes.router import router as clientes_router
 from app.modules.ordenes.router import router as ordenes_router
+from app.modules.repuestos.router import router as repuestos_router
 
 
 async def _calcular_hash_ficticio(
@@ -76,8 +77,8 @@ rutas_abiertas.include_router(health_router)
 rutas_abiertas.include_router(auth_router)
 rutas_protegidas.include_router(usuarios_router)  # CH-05
 rutas_protegidas.include_router(clientes_router)  # CH-06
-# CH-07: rutas_protegidas.include_router(repuestos_router)
 rutas_protegidas.include_router(ordenes_router)  # CH-08
+rutas_protegidas.include_router(repuestos_router)  # CH-07
 
 app.include_router(rutas_abiertas)
 app.include_router(rutas_protegidas)
