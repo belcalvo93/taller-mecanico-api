@@ -206,7 +206,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 ---
 
 ### [CH-02] `esquema-y-migraciones`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Belén · ola 1 (vie 23 – lun 26/10)
 - **Scope**: **único change que escribe los modelos y las migraciones**
   - Los **13 modelos** SQLModel en `app/modules/<mod>/models.py`: `usuarios` → `Usuario`, `AsignacionRol`, `IntentoAcceso`, `EventoSeguridad`; `clientes` → `Cliente`, `Vehiculo`; `repuestos` → `Repuesto`, `MovimientoStock`, `HistorialPrecio`; `ordenes` → `EstadoOrden`, `OrdenTrabajo`, `ItemOrden`, `HistorialEstadoOrden`. Nombres de tablas y columnas **exactos** (los usan los casos y la corrección)
@@ -235,7 +235,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 ---
 
 ### [CH-03] `nucleo-repositorios-uow`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Elías · ola 1 (vie 23 – lun 26/10)
 - **Scope**: **SÓLO el núcleo genérico de `app/core/`** (DD-12); los repositorios y UoW concretos de cada módulo los escribe el change de ese módulo (ola 2; `ordenes` en ola 3)
   - `app/core/repository.py`: `BaseRepository[T]` (recibe sesión y clase del modelo; `get_by_id`, `get_all`, `count`, `add`, `update`, `delete`; `add`/`update` hacen `flush()`, **nunca** `commit()`) y `SoftDeleteRepository[T]` (hereda; filtra los dados de baja por `borrado_en`; suma `get_by_id_including_deleted` y `soft_delete`)
@@ -264,7 +264,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 > Cuatro changes en paralelo con tres personas: Hernán hace CH-04 y después CH-05; Joaquín CH-06; Bruno CH-07. Cada change escribe **sus** `repository.py`, `unit_of_work.py`, `schemas.py`, `service.py`, `router.py` y sus `.http`. Coordinar el lunes 26: (1) firma de `ClienteRepository` (DD-13), primera tarea de CH-06; (2) firmas de `get_usuario_actual` y `requiere_rol` en `app/core/dependencies.py`, que Hernán sube provisorias como primera tarea de CH-04 (CH-06 y CH-07 dependen sólo de esa tarea; CH-05 las reemplaza por la versión real).
 
 ### [CH-04] `autenticacion`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Hernán · ola 2 (lun 26 – mié 28/10)
 - **Scope**: registro, login con cookie, logout, identidad y cambio de contraseña
   - **PRIMERA tarea (T1, gate "dependencias provisorias en main")**: subir `get_usuario_actual` y `requiere_rol(*roles)` **provisorios** en `app/core/dependencies.py`, con las firmas definitivas, en un PR chico mergeado el lunes 26 a la mañana. **CH-06 y CH-07 dependen sólo de esta tarea**, no de CH-04 completo. CH-05 los reemplaza/completa con la versión real (roles vigentes en la base, 401/403, cambio obligatorio) sin cambiar las firmas
@@ -321,7 +321,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 ---
 
 ### [CH-06] `clientes-y-vehiculos`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Joaquín · ola 2 (lun 26 – mié 28/10)
 - **Scope**: clientes y vehículos con borrado lógico
   - **PRIMERA tarea (T1, DD-13)**: `ClienteRepository` básico en `app/modules/clientes/repository.py` (hereda de `BaseRepository[Cliente]`), en un PR chico mergeado el lunes 26 para que CH-04 lo importe desde el UoW de `usuarios` (registro, RN-02); firma acordada con Hernán. Si Hernán llega antes y lo crea con la misma firma, Joaquín lo extiende. CH-04 depende sólo de esta tarea, no de CH-06 completo
