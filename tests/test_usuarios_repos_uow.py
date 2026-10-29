@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import ahora_utc
-from app.modules.clientes.models import Cliente
+from app.core.paginacion import PaginaInexistente, ParametrosPagina
 from app.modules.usuarios.models import AsignacionRol, IntentoAcceso, Usuario
 from app.modules.usuarios.repository import (
     AsignacionRolRepository,
@@ -13,7 +13,7 @@ from app.modules.usuarios.repository import (
     IntentoAccesoRepository,
     UsuarioRepository,
 )
-from app.modules.usuarios.unit_of_work import UsuarioUnitOfWork, get_usuario_uow
+from app.modules.usuarios.unit_of_work import UsuarioUnitOfWork
 
 
 @pytest.fixture
@@ -78,6 +78,19 @@ async def test_asignacion_rol_repository(sembrada, motor):
         assert "MECANICO" not in roles_vigentes
         assert "ADMIN" in roles_vigentes
 
+        # CH-05: listar_asignaciones_usuario incluye vigentes, vencidas y revocadas en orden de id
+        asignaciones = await repo_roles.listar_asignaciones_usuario(user.id)
+        assert [a.rol for a in asignaciones] == ["ADMIN", "RECEPCION", "MECANICO"]
+
+        # CH-05: obtener_asignacion_abierta devuelve la fila con revocada_en IS NULL
+        abierta_admin = await repo_roles.obtener_asignacion_abierta(user.id, "ADMIN")
+        assert abierta_admin is not None and abierta_admin.revocada_en is None
+        abierta_recepcion = await repo_roles.obtener_asignacion_abierta(user.id, "RECEPCION")
+        assert abierta_recepcion is None
+
+        # CH-05: contar_admins_vigentes en el seed cuenta a admin y admin2 (2)
+        assert await repo_roles.contar_admins_vigentes() == 2
+
 
 async def test_intento_acceso_repository(session_test):
     repo = IntentoAccesoRepository(session_test)
@@ -140,12 +153,25 @@ async def test_intento_acceso_repository(session_test):
     assert primer == fallo_nuevo.cuando
 
 
-async def test_evento_seguridad_repository(session_test):
+async def test_evento_seguridad_repository_y_paginacion(session_test):
     repo = EventoSeguridadRepository(session_test)
-    ev = await repo.registrar(actor="test@example.com", accion="ALTA_USUARIO_CLIENTE")
-    assert ev.id is not None
-    assert ev.actor == "test@example.com"
-    assert ev.accion == "ALTA_USUARIO_CLIENTE"
+    ev1 = await repo.registrar(actor="SISTEMA", accion="Carga de los datos iniciales")
+    ev2 = await repo.registrar(actor="admin@example.com", accion="Alta de usuario de personal")
+    ev3 = await repo.registrar(actor="admin@example.com", accion="Asignación de rol")
+    assert ev1.id is not None
+
+    pagina1 = await repo.listar_paginado(ParametrosPagina(page=1, size=2))
+    assert pagina1.total == 3
+    assert pagina1.page == 1
+    assert pagina1.size == 2
+    assert pagina1.pages == 2
+    assert [e.id for e in pagina1.items] == [ev1.id, ev2.id]
+
+    pagina2 = await repo.listar_paginado(ParametrosPagina(page=2, size=2))
+    assert [e.id for e in pagina2.items] == [ev3.id]
+
+    with pytest.raises(PaginaInexistente):
+        await repo.listar_paginado(ParametrosPagina(page=3, size=2))
 
 
 async def test_usuario_unit_of_work_commit_and_rollback(motor, vaciar_al_terminar):

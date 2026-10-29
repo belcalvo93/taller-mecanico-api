@@ -66,6 +66,21 @@ async def get_usuario_actual(
     return usuario
 
 
+async def verificar_cambio_password_obligatorio(
+    usuario: Usuario = Depends(get_usuario_actual),
+) -> Usuario:
+    """Bloquea con 403 si el usuario tiene el cambio de contraseña obligatorio pendiente (RN-06).
+
+    Se monta una sola vez sobre el grupo de rutas protegidas en main.py (regla 12).
+    """
+    if usuario.debe_cambiar_password:
+        raise HTTPException(
+            status_code=403,
+            detail="Debe cambiar su contraseña provisoria antes de continuar",
+        )
+    return usuario
+
+
 def requiere_rol(*roles: str) -> Callable[..., Awaitable[Usuario]]:
     """Fábrica de dependencias de autorización por rol (regla 12, RN-04).
 

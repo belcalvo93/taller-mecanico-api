@@ -1,0 +1,86 @@
+# C-07 — Revocar un rol con la sesión abierta y vencimientos inválidos
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+#
+# Usa dos sesiones simultáneas (# @name + # @no-cookie-jar + Cookie explícita):
+# - loginAdmin (admin@example.com, id=1)
+# - loginRecepcion (recepcion@example.com, id=3)
+
+@base = http://localhost:8000
+
+### 1) Login de administrador
+# @name loginAdmin
+# @no-cookie-jar
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+# Esperado: 200, Set-Cookie: access_token=...
+
+### 2) Login de recepción
+# @name loginRecepcion
+# @no-cookie-jar
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+# Esperado: 200, Set-Cookie: access_token=...
+
+### 3) Recepción accede a /clientes/1 con su sesión abierta
+# @no-cookie-jar
+GET {{base}}/clientes/1
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
+
+# Esperado: 200 (recepción tiene el rol RECEPCION vigente en asignacion_rol)
+
+### 4) El administrador revoca el rol RECEPCION del usuario 3
+# @no-cookie-jar
+DELETE {{base}}/usuarios/3/roles/RECEPCION
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+# Esperado: 200 con revocada_en distinto de null (la fila no se borra)
+
+### 5) Petición siguiente de recepción con la MISMA cookie a /clientes/1
+# @no-cookie-jar
+GET {{base}}/clientes/1
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
+
+# Esperado: 403 {"detail": "Sin permiso: rol insuficiente"}
+
+### 6) /auth/yo con la misma cookie muestra la diferencia entre base y token
+# @no-cookie-jar
+GET {{base}}/auth/yo
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
+
+# Esperado: 200
+# {"id": 3, "email": "recepcion@example.com", "nombre": "Rita Recepción",
+#  "activo": true, "debe_cambiar_password": false,
+#  "roles_vigentes": [], "roles_token": ["RECEPCION"]}
+
+### 7) La fila revocada sigue en asignacion_rol (RN-03)
+# @no-cookie-jar
+GET {{base}}/usuarios/3/roles
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+# Esperado: 200 con la fila de RECEPCION y revocada_en completado
+
+### 8) Asignar rol con vencimiento en el pasado → 422 (nunca 409)
+# @no-cookie-jar
+POST {{base}}/usuarios/3/roles
+Content-Type: application/json
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+{"rol": "RECEPCION", "vence_en": "2020-01-01T00:00:00Z"}
+
+# Esperado: 422 Unprocessable Entity
+
+### 9) Asignar rol con vencimiento sin zona horaria (naive) → 422 (nunca 409)
+# @no-cookie-jar
+POST {{base}}/usuarios/3/roles
+Content-Type: application/json
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+{"rol": "RECEPCION", "vence_en": "2030-01-01T00:00:00"}
+
+# Esperado: 422 Unprocessable Entity

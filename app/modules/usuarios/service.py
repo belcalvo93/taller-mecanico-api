@@ -8,16 +8,25 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import Settings
 from app.core.database import ahora_utc
+from app.core.paginacion import Pagina, ParametrosPagina
 from app.core.security import crear_access_token, hashear_password, verificar_password
 from app.modules.clientes.models import Cliente
 from app.modules.usuarios.models import AsignacionRol, IntentoAcceso, Usuario
 from app.modules.usuarios.schemas import (
     ACCION_ALTA_CLIENTE,
+    ACCION_ALTA_PERSONAL,
+    ACCION_ASIGNACION_ROL,
     ACCION_CAMBIO_PASSWORD,
+    ACCION_REVOCACION_ROL,
+    AltaPersonalRequest,
+    AsignacionRolResponse,
+    AsignarRolRequest,
     CambiarPasswordRequest,
+    EventoSeguridadResponse,
     LoginRequest,
     RegistroRequest,
     RegistroResponse,
+    UsuarioPersonalResponse,
     UsuarioYoResponse,
 )
 from app.modules.usuarios.unit_of_work import UsuarioUnitOfWork
@@ -47,6 +56,22 @@ class LimiteIntentosError(Exception):
     def __init__(self, retry_after: int) -> None:
         super().__init__("Demasiados intentos fallidos")
         self.retry_after = retry_after
+
+
+class UsuarioNoEncontradoError(Exception):
+    pass
+
+
+class RolNoEncontradoError(Exception):
+    pass
+
+
+class RolYaVigenteError(Exception):
+    pass
+
+
+class AutoproteccionAdminError(Exception):
+    pass
 
 
 async def registrar_cliente(
@@ -227,3 +252,175 @@ async def cambiar_password(
         roles = await uow.asignaciones_rol.listar_roles_vigentes(usuario_id)  # type: ignore[arg-type]
     # iat = instante_cambio → iat >= password_cambiada_en: el token nuevo pasa.
     return crear_access_token(usuario_id, roles, settings, ahora=instante_cambio)  # type: ignore[arg-type]
+
+
+# --- CH-05: Alta de personal, gestión de roles y eventos de seguridad ---------
+
+
+async def crear_personal(
+    admin: Usuario,
+    datos: AltaPersonalRequest,
+    uow: UsuarioUnitOfWork,
+    settings: Settings,
+    semaforo: asyncio.Semaphore,
+) -> UsuarioPersonalResponse:
+    """Alta de personal con contraseña provisoria (US-012, RN-06, regla 9)."""
+    admin_id = admin.id
+    admin_email = admin.email
+    # requiere_rol leyó en la sesión de la petición y dejó abierta una transacción
+    # de sólo lectura; se cierra antes de calcular bcrypt (regla 9).
+    await uow.session.rollback()
+
+    password_hash = await hashear_password(datos.password, settings, semaforo)
+
+    try:
+        async with uow:
+            usuario = Usuario(
+                email=datos.email,
+                nombre=datos.nombre,
+                password_hash=password_hash,
+                activo=True,
+                debe_cambiar_password=True,
+            )
+            await uow.usuarios.add(usuario)
+
+            asignacion = AsignacionRol(
+                usuario_id=usuario.id,  # type: ignore[arg-type]
+                rol=datos.rol,
+                otorgada_por=admin_id,
+            )
+            await uow.asignaciones_rol.add(asignacion)
+
+            await uow.eventos_seguridad.registrar(
+                actor=admin_email,
+                accion=ACCION_ALTA_PERSONAL,
+            )
+    except IntegrityError as exc:
+        constraint = getattr(exc.orig, "constraint_name", None) or str(exc)
+        if "uq_usuario_email" in constraint or "email" in constraint:
+            raise EmailDuplicadoError("El correo electrónico ya está registrado") from exc
+        raise
+
+    return UsuarioPersonalResponse(
+        id=usuario.id,  # type: ignore[arg-type]
+        email=usuario.email,
+        nombre=usuario.nombre,
+        activo=usuario.activo,
+        debe_cambiar_password=usuario.debe_cambiar_password,
+        rol=datos.rol,
+    )
+
+
+async def listar_roles_usuario(
+    usuario_id: int,
+    uow: UsuarioUnitOfWork,
+) -> list[AsignacionRolResponse]:
+    async with uow:
+        usuario = await uow.usuarios.get_by_id(usuario_id)
+        if usuario is None:
+            raise UsuarioNoEncontradoError("Usuario no encontrado")
+        asignaciones = await uow.asignaciones_rol.listar_asignaciones_usuario(usuario_id)
+        return [AsignacionRolResponse.model_validate(a) for a in asignaciones]
+
+
+async def asignar_rol(
+    admin: Usuario,
+    usuario_id: int,
+    datos: AsignarRolRequest,
+    uow: UsuarioUnitOfWork,
+) -> AsignacionRolResponse:
+    admin_id = admin.id
+    admin_email = admin.email
+
+    try:
+        async with uow:
+            usuario = await uow.usuarios.get_by_id(usuario_id)
+            if usuario is None:
+                raise UsuarioNoEncontradoError("Usuario no encontrado")
+
+            ahora = ahora_utc()
+            abierta = await uow.asignaciones_rol.obtener_asignacion_abierta(
+                usuario_id, datos.rol
+            )
+            if abierta is not None:
+                if abierta.vence_en is None or abierta.vence_en > ahora:
+                    raise RolYaVigenteError("El usuario ya tiene ese rol vigente")
+                # La fila estaba vencida pero con revocada_en IS NULL: se cierra para
+                # respetar uq_asignacion_rol_abierta conservando el historial (RN-03).
+                await uow.asignaciones_rol.update(abierta, {"revocada_en": ahora})
+
+            nueva = AsignacionRol(
+                usuario_id=usuario_id,
+                rol=datos.rol,
+                desde=ahora,
+                vence_en=datos.vence_en,
+                otorgada_por=admin_id,
+            )
+            await uow.asignaciones_rol.add(nueva)
+            await uow.eventos_seguridad.registrar(
+                actor=admin_email,
+                accion=ACCION_ASIGNACION_ROL,
+            )
+    except IntegrityError as exc:
+        constraint = getattr(exc.orig, "constraint_name", None) or str(exc)
+        if "uq_asignacion_rol_abierta" in constraint:
+            raise RolYaVigenteError("El usuario ya tiene ese rol vigente") from exc
+        raise
+
+    return AsignacionRolResponse.model_validate(nueva)
+
+
+async def revocar_rol(
+    admin: Usuario,
+    usuario_id: int,
+    rol: str,
+    uow: UsuarioUnitOfWork,
+) -> AsignacionRolResponse:
+    admin_id = admin.id
+    admin_email = admin.email
+
+    # RN-05 (C-08): un administrador no puede revocar su propio rol ADMIN
+    if usuario_id == admin_id and rol == "ADMIN":
+        raise AutoproteccionAdminError(
+            "Un administrador no puede revocar su propio rol ADMIN"
+        )
+
+    async with uow:
+        usuario = await uow.usuarios.get_by_id(usuario_id)
+        if usuario is None:
+            raise UsuarioNoEncontradoError("Usuario no encontrado")
+
+        ahora = ahora_utc()
+        abierta = await uow.asignaciones_rol.obtener_asignacion_abierta(usuario_id, rol)
+        if abierta is None or (abierta.vence_en is not None and abierta.vence_en <= ahora):
+            raise RolNoEncontradoError("El usuario no tiene ese rol vigente")
+
+        if rol == "ADMIN":
+            admins_vigentes = await uow.asignaciones_rol.contar_admins_vigentes(ahora)
+            if admins_vigentes <= 1:
+                raise AutoproteccionAdminError(
+                    "El sistema no puede quedar sin administradores"
+                )
+
+        await uow.asignaciones_rol.update(abierta, {"revocada_en": ahora})
+        await uow.eventos_seguridad.registrar(
+            actor=admin_email,
+            accion=ACCION_REVOCACION_ROL,
+        )
+
+    return AsignacionRolResponse.model_validate(abierta)
+
+
+async def listar_eventos_seguridad(
+    pagina: ParametrosPagina,
+    uow: UsuarioUnitOfWork,
+) -> Pagina[EventoSeguridadResponse]:
+    async with uow:
+        resultado = await uow.eventos_seguridad.listar_paginado(pagina)
+        return Pagina[EventoSeguridadResponse](
+            items=[EventoSeguridadResponse.model_validate(e) for e in resultado.items],
+            total=resultado.total,
+            page=resultado.page,
+            size=resultado.size,
+            pages=resultado.pages,
+        )

@@ -1,9 +1,5 @@
 # C-01 — Parámetro de ruta no entero con sesión iniciada
 # Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
-#
-# NOTA: las rutas con {id} entero las montan CH-05 (/usuarios/{id}/roles) y
-# CH-06 (/clientes/{id}). Hasta que esos changes estén en main, estas dos
-# peticiones responden 404. Con ellos montados, la respuesta esperada es 422.
 
 @base = http://localhost:8000
 

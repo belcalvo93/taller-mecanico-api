@@ -1,0 +1,35 @@
+# C-08 — Autoprotección del administrador (RN-05)
+# Antes: alembic upgrade head && python seed.py ; servidor en http://localhost:8000
+
+@base = http://localhost:8000
+
+### 1) Login de administrador 1 (id=1)
+# @name loginAdmin1
+# @no-cookie-jar
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+# Esperado: 200
+
+### 2) El administrador 1 intenta revocar su propio rol ADMIN → 409
+# @no-cookie-jar
+DELETE {{base}}/usuarios/1/roles/ADMIN
+Cookie: {{loginAdmin1.response.headers.Set-Cookie}}
+
+# Esperado: 409 {"detail": "Un administrador no puede revocar su propio rol ADMIN"}
+
+### 3) El administrador 1 revoca el rol ADMIN de admin2 (id=2) → 200
+# @no-cookie-jar
+DELETE {{base}}/usuarios/2/roles/ADMIN
+Cookie: {{loginAdmin1.response.headers.Set-Cookie}}
+
+# Esperado: 200 (queda admin@example.com como único administrador vigente)
+
+### 4) El único administrador restante tampoco puede revocarse su propio ADMIN → 409
+# @no-cookie-jar
+DELETE {{base}}/usuarios/1/roles/ADMIN
+Cookie: {{loginAdmin1.response.headers.Set-Cookie}}
+
+# Esperado: 409 {"detail": "Un administrador no puede revocar su propio rol ADMIN"}
