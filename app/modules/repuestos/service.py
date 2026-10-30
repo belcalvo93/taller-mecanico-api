@@ -84,7 +84,7 @@ async def actualizar_repuesto(
         repuesto = await _vigente(uow, repuesto_id)
         precio_anterior = repuesto.precio
         await uow.repuestos.update(repuesto, cambios)
-        # historial sólo si el precio cambió de verdad (RN-13); en la misma transacción
+        # historial sólo si el precio cambió de verdad (RN-20); en la misma transacción
         if "precio" in cambios and cambios["precio"] != precio_anterior:
             await uow.historial_precios.add(
                 HistorialPrecio(
