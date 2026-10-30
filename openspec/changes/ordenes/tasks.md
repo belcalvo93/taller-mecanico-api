@@ -100,10 +100,10 @@
 
 ## 10. Cierre e integración
 
-- [ ] 10.1 Suite completa verde y comparación con la línea base de 0.1
-- [ ] 10.2 Verificar contra RN-10, RN-11, RN-12, RN-13, RN-14, RN-15, RN-16, RN-17, RN-18, RN-19, los casos C-01 (parte), C-06, C-10, C-11, C-12, C-13, C-15, C-17, y las reglas 6, 13, 14, 15, 16 y 17 de `CLAUDE.md`
-- [ ] 10.3 `docs/bitacora.md` (sección Elías): qué se le pidió al agente, qué se corrigió a mano y por qué; decisiones D5 (409 para vehículo/total), D8 (órdenes de vehículos dados de baja) y D11 (logger del aviso)
-- [ ] 10.4 `git status` sin `.env` ni archivos fuera del alcance
+- [x] 10.1 Suite completa verde y comparación con la línea base de 0.1
+- [x] 10.2 Verificar contra RN-10, RN-11, RN-12, RN-13, RN-14, RN-15, RN-16, RN-17, RN-18, RN-19, los casos C-01 (parte), C-06, C-10, C-11, C-12, C-13, C-15, C-17, y las reglas 6, 13, 14, 15, 16 y 17 de `CLAUDE.md`
+- [x] 10.3 `docs/bitacora.md` (sección Elías): qué se le pidió al agente, qué se corrigió a mano y por qué; decisiones D5 (409 para vehículo/total), D8 (órdenes de vehículos dados de baja) y D11 (logger del aviso)
+- [x] 10.4 `git status` sin `.env` ni archivos fuera del alcance
 
 ## Workflow follow-up
 
