@@ -247,8 +247,13 @@ async def terminar_orden(uow: OrdenesUnitOfWork, usuario_id: int, orden_id: int)
             # Por repuesto_id: dos terminaciones simultáneas toman los bloqueos de fila
             # en el mismo orden (design D6). Un movimiento por ítem, por el único punto
             # de escritura de stock (RN-14). Con repuestos dados de baja también (DD-14).
-            for item in sorted(orden.items, key=lambda i: i.repuesto_id):
-                repuesto = await uow.repuestos.get_by_id_including_deleted(item.repuesto_id)
+            # Las filas de repuesto se bloquean ANTES de comprobar el stock y en orden
+            # ascendente de id: dos órdenes con el mismo repuesto se serializan y la
+            # segunda ve el stock ya descontado por la primera.
+            items = sorted(orden.items, key=lambda i: i.repuesto_id)
+            repuestos = await uow.ordenes.bloquear_repuestos([i.repuesto_id for i in items])
+            for item in items:
+                repuesto = repuestos[item.repuesto_id]
                 await uow.repuestos.mover_stock(
                     repuesto, -item.cantidad, motivo=f"Orden {orden.id} terminada",
                     usuario_id=usuario_id, orden_id=orden.id,

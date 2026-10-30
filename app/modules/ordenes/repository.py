@@ -12,6 +12,7 @@ from app.core.paginacion import Pagina, ParametrosPagina
 from app.core.repository import BaseRepository
 from app.modules.clientes.models import Cliente, Vehiculo
 from app.modules.ordenes.models import EstadoOrden, HistorialEstadoOrden, ItemOrden, OrdenTrabajo
+from app.modules.repuestos.models import Repuesto
 
 
 class EstadoOrdenRepository:
@@ -81,6 +82,24 @@ class OrdenRepository(BaseRepository[OrdenTrabajo]):
             .execution_options(populate_existing=True)
         )
         return (await self.session.exec(consulta)).first()
+
+    async def bloquear_repuestos(self, ids: list[int]) -> dict[int, Repuesto]:
+        """Los repuestos dados BLOQUEADOS (FOR UPDATE), en orden ascendente de id, con los
+        valores frescos de la base (`populate_existing`). Incluye los dados de baja (DD-14).
+        Sin este bloqueo dos órdenes que comparten repuesto leerían el mismo stock y una
+        descontaría de más o pisaría a la otra (lost update). Orden fijo de bloqueo: evita
+        interbloqueos entre terminaciones simultáneas (design D6). Sólo lectura: la
+        escritura del stock sigue siendo de `mover_stock` (RN-14)."""
+        if not ids:
+            return {}
+        consulta = (
+            select(Repuesto)
+            .where(col(Repuesto.id).in_(ids))
+            .order_by(col(Repuesto.id))
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        return {r.id: r for r in (await self.session.exec(consulta)).all()}
 
     async def listar(self, estado: str | None, pagina: ParametrosPagina) -> Pagina[OrdenTrabajo]:
         """Listado del personal por id. joinedload de muchos-a-uno: una fila por orden,

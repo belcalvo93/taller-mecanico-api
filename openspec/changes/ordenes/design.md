@@ -83,6 +83,8 @@ Al salir, el UoW confirma; luego el servicio abre otro bloque y devuelve `get_de
 | terminar | `MECANICO`, `ADMIN` | 404 → ni ADMIN vigente ni `mecanico_id == usuario.id`: 403 → estado ≠ EN_REPARACION: 409 → stock (D4) por ítem, ordenado por `repuesto_id` → `estado=TERMINADA`, historial |
 | cancelar | **ninguno** | 404 → ni RECEPCION/ADMIN vigente ni dueño: 403 → estado ≠ PENDIENTE: 409 → `estado=CANCELADA`, historial |
 
+**Bloqueo de repuestos al terminar.** Bloquear la orden no basta: dos órdenes distintas con el mismo repuesto leerían el mismo stock y `mover_stock` (absoluto: `SET stock = <valor>`) pisaría un descuento. Por eso `terminar_orden` llama a `OrdenRepository.bloquear_repuestos(ids)`: `SELECT ... WHERE id IN (...) ORDER BY id FOR UPDATE` con `populate_existing` (incluye dados de baja, DD-14), dentro del mismo bloque del UoW y antes de comprobar el stock. El orden ascendente de `repuesto_id` es el orden único de bloqueo (sin interbloqueos); la segunda terminación espera, relee el stock ya descontado y obtiene 409 si no alcanza. La escritura sigue siendo sólo de `mover_stock` (RN-14).
+
 - "Dueño" = `orden.vehiculo.cliente.usuario_id == usuario.id` (aunque el vehículo esté dado de baja: la orden sigue siendo suya).
 - En terminar, el 403 del mecánico asignado requiere además su rol MECANICO vigente: lo garantiza `requiere_rol` en la ruta. Un ADMIN que además es el asignado, pasa por cualquiera de las dos.
 - 404 antes que 403: una orden inexistente no tiene relación con nadie (mismo criterio que SU-04).

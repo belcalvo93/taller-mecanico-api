@@ -94,6 +94,7 @@
 - [x] 9.6 ROJO→VERDE DD-14: dar de baja el repuesto de un ítem y terminar la orden con stock suficiente → 200 y el stock baja
 - [x] 9.7 ROJO→VERDE aviso (D11): con terminar exitoso, el mensaje de `taller.avisos` aparece después del `http.response.body` final (app ASGI con `send` espiado, `asyncio.sleep` sin espera); con 409 (C-11) y con 403 no aparece (`caplog`)
 - [x] 9.8 ROJO→VERDE ciclo completo: crear → iniciar → terminar deja 3 líneas de historial en orden
+- [x] 9.8b ROJO→VERDE concurrencia: dos órdenes distintas con el mismo repuesto terminadas a la vez (stock para una sola → 200 y 409, stock inicial − N, un solo movimiento negativo; stock para ambas → dos 200 y dos descuentos); `OrdenRepository.bloquear_repuestos` con `FOR UPDATE` ordenado por id (D6)
 - [ ] 9.9 `test/C-11_stock_insuficiente.http` y `test/C-12_reponer_y_terminar.http` (sesiones de ADMIN y de mecánico); completar el caso "terminada → 409" de `test/C-13_cancelar_orden.http`; correrlos contra el servidor real y ver el aviso en la consola después de la respuesta
 - [ ] 9.10 Commit: `feat(ordenes): terminar orden con descuento de stock y aviso (C-11, C-12)`
 

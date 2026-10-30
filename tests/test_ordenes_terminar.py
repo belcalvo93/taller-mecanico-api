@@ -240,3 +240,69 @@ async def test_sin_aviso_cuando_terminar_falla(sembrada, client, sin_espera, cap
     assert ("asgi", "http.response.start", esperado, None) in eventos
     assert [e for e in eventos if e[0] == "aviso"] == []
     assert [r for r in caplog.records if r.name == "taller.avisos"] == []
+
+
+# --- concurrencia: dos órdenes distintas con el mismo repuesto (design D6) -------------------------
+
+@pytest.fixture
+def lecturas_simultaneas(monkeypatch):
+    """Obliga a que las dos terminaciones lleguen a escribir stock con lo que ya leyeron.
+
+    Envuelve `mover_stock`: cada llamada espera (máx. 1 s) a que la otra también llegue. Sin
+    bloqueo de las filas de repuesto ambas leen el mismo stock y se pisan (lost update); con
+    el bloqueo la segunda queda esperando el candado, la espera vence y sigue en serie.
+    """
+    from app.modules.repuestos.repository import RepuestoRepository
+
+    original = RepuestoRepository.mover_stock
+    llegadas = 0
+    juntas = asyncio.Event()
+
+    async def _con_espera(self, repuesto, cantidad, **kw):
+        nonlocal llegadas
+        llegadas += 1
+        if llegadas >= 2:
+            juntas.set()
+        try:
+            await asyncio.wait_for(juntas.wait(), timeout=1.0)
+        except asyncio.TimeoutError:
+            pass
+        return await original(self, repuesto, cantidad, **kw)
+
+    monkeypatch.setattr(RepuestoRepository, "mover_stock", _con_espera)
+
+
+async def _dos_ordenes_con_filtro(motor, stock: int) -> tuple[int, int]:
+    async with motor.begin() as c:
+        await c.execute(text("UPDATE repuesto SET stock = :s WHERE id = :i"), {"s": stock, "i": FILTRO})
+    return (
+        await crear_orden(motor, 3, [FILTRO], estado="EN_REPARACION", mecanico_id=MECANICO),
+        await crear_orden(motor, 3, [FILTRO], estado="EN_REPARACION", mecanico_id=MECANICO),
+    )
+
+
+async def test_dos_terminaciones_simultaneas_no_gastan_el_mismo_stock(sembrada, client, lecturas_simultaneas):
+    a, b = await _dos_ordenes_con_filtro(sembrada, 1)  # alcanza para una sola
+    h = await sesion(client, ADMIN)
+    r1, r2 = await asyncio.gather(
+        client.post(f"/ordenes/{a}/terminar", headers=h), client.post(f"/ordenes/{b}/terminar", headers=h))
+    assert sorted([r1.status_code, r2.status_code]) == [200, 409]
+    assert await _stock(sembrada, FILTRO) == 0
+    assert await _escalar(
+        sembrada, "SELECT count(*) FROM movimiento_stock WHERE repuesto_id = :r AND cantidad < 0 "
+        "AND orden_id IN (:a, :b)", r=FILTRO, a=a, b=b) == 1
+    estados = sorted([await _estado(sembrada, a), await _estado(sembrada, b)])
+    assert estados == ["EN_REPARACION", "TERMINADA"]
+
+
+async def test_dos_terminaciones_simultaneas_con_stock_para_ambas_descuentan_dos_veces(
+        sembrada, client, lecturas_simultaneas):
+    a, b = await _dos_ordenes_con_filtro(sembrada, 5)
+    h = await sesion(client, ADMIN)
+    r1, r2 = await asyncio.gather(
+        client.post(f"/ordenes/{a}/terminar", headers=h), client.post(f"/ordenes/{b}/terminar", headers=h))
+    assert (r1.status_code, r2.status_code) == (200, 200)
+    assert await _stock(sembrada, FILTRO) == 3
+    assert await _escalar(
+        sembrada, "SELECT count(*) FROM movimiento_stock WHERE repuesto_id = :r AND cantidad = -1 "
+        "AND orden_id IN (:a, :b)", r=FILTRO, a=a, b=b) == 2
