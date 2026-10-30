@@ -6,6 +6,3 @@ alembic>=1.13
 pydantic-settings>=2.0
 bcrypt>=4.0
 PyJWT>=2.8
-pytest
-pytest-asyncio
-httpx
