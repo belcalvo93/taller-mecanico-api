@@ -1,5 +1,15 @@
 # Taller Mecánico API
 
+## Grupo: Git Push & Pray
+
+| Integrante | Usuario de GitHub |
+|---|---|
+| Calvo, Belén | belcalvo93 |
+| Fiouchetta, Bruno | BrunoFiouchetta |
+| Gonzalez, Hernán | mhernangonzalez32-gif |
+| Moran, Joaquín | joaquinmo1 |
+| Tello, Elías | eEmanuel07 |
+
 API asincrónica para un taller mecánico: órdenes de trabajo, stock de repuestos y control de acceso por roles. Trabajo práctico integrador de Programación III (UTN).
 
 - Consigna: [docs/consigna-tp.md](docs/consigna-tp.md)
