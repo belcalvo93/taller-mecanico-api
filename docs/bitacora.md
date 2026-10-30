@@ -94,6 +94,10 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 - Los pendientes que había anotado para este change pasaron al README (`.env` propio, usuario y bases `taller` y `taller_test`, generación de la clave de firma, comandos desde la raíz del repo, orden `alembic upgrade head` → `python seed.py`, C-14 y `taller_test` vacía tras la suite).
 - **Fase B (PR #24, Elías):** corrida de C-01 a C-19 sobre `main`, verificación de RN-01 a RN-20, evidencia de C-15 y archivado de `autorizacion-y-roles`, `repuestos-y-stock` y `ordenes`. Detalle en `docs/evidencias/resultados-fase-b.md` y `docs/evidencias/verificacion-rn.md`. Suite `pytest`: 916 tests en verde.
 
+### 2026-10-30 · quitar tests de pytest
+- **Fecha:** 2026-10-30
+- **Qué corrigió a mano y por qué:** por indicación del profesor se quitaron los tests de pytest (`tests/` y `pytest.ini`): la consigna solo pide los `.http`. El historial de TDD queda en los commits y en las entradas anteriores de la bitácora.
+
 ## Elías
 
 ### 2026-10-27 · CH-03 nucleo-repositorios-uow

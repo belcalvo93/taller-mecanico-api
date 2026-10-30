@@ -32,16 +32,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Con el entorno activado, los comandos de abajo usan `python`, `alembic`, `uvicorn` y `pytest` a secas. (Probado con Python 3.14; la consigna pide 3.12 o superior. `asyncpg>=0.31` porque la 0.30 no tiene versión precompilada para Python 3.14 y es compatible con 3.12 y 3.13.)
+Con el entorno activado, los comandos de abajo usan `python`, `alembic`, `uvicorn` y `psql` a secas. (Probado con Python 3.14; la consigna pide 3.12 o superior. `asyncpg>=0.31` porque la 0.30 no tiene versión precompilada para Python 3.14 y es compatible con 3.12 y 3.13.)
 
 ### 1.2 Usuario y bases en PostgreSQL
 
-Hacen falta **dos bases**: `taller` (desarrollo) y `taller_test` (la usa la suite de pytest). Conectate como superusuario (por ejemplo `psql -U postgres`) y corré, **eligiendo vos la contraseña**:
+Hace falta **una base**: `taller` (desarrollo). Conectate como superusuario (por ejemplo `psql -U postgres`) y corré, **eligiendo vos la contraseña**:
 
 ```sql
 CREATE USER taller WITH PASSWORD '<elegí-una-contraseña>';
 CREATE DATABASE taller OWNER taller;
-CREATE DATABASE taller_test OWNER taller;
 ```
 
 Cada integrante usa su propio usuario y su propia contraseña: no se comparten ni se suben al repositorio.
@@ -144,25 +143,13 @@ SQL_ECHO=true uvicorn main:app
 
 (PowerShell: `$env:SQL_ECHO="true"; uvicorn main:app`.)
 
-## 2. Pruebas: `tests/` y `test/`
+## 2. Pruebas: `test/`
 
 | Carpeta | Qué tiene | Cómo se usa |
 |---|---|---|
-| `tests/` | la suite automatizada **pytest** (pytest, pytest-asyncio y httpx) | `pytest` |
 | `test/` | los casos de prueba de la consigna: archivos **`.http`** (C-01 a C-19, uno por caso, cada uno con la respuesta esperada en un comentario) y `solo_agregado.sql` (C-14) | REST Client / `psql` |
 
-### 2.1 Suite pytest
-
-La suite corre contra **`taller_test`** (nunca toca `taller`: fuerza `POSTGRES_DB=taller_test`) y migra esa base con `alembic upgrade head` al empezar. Tiene que estar creada (paso 1.2); el resto de las credenciales sale de tu `.env`.
-
-```bash
-pytest
-```
-
-- La suite deja `taller_test` **vacía** al terminar. Si sembraste `taller_test` a mano con `seed.py`, vaciala antes de volver a correr la suite (o `alembic downgrade base` + `alembic upgrade head` sobre esa base).
-- `pytest` sólo recolecta `tests/`: nunca ejecuta nada de `test/`.
-
-### 2.2 Casos `.http` (C-01 a C-19)
+### 2.1 Casos `.http` (C-01 a C-19)
 
 Se corren con la extensión **REST Client** de VS Code, con el servidor levantado y **corriendo `python seed.py` antes de cada archivo** (cada caso parte de los mismos datos):
 
@@ -193,7 +180,7 @@ Cuando un archivo necesita varias sesiones a la vez (por ejemplo C-07), cada log
 
 Los `.http` de C-06, C-10 a C-13, C-15 y C-17 y la evidencia de C-15 (`docs/evidencias/C-15_consola.txt`) llegan con CH-08 (órdenes).
 
-### 2.3 C-14: sólo agregado (psql)
+### 2.2 C-14: sólo agregado (psql)
 
 Con la base migrada y sembrada:
 
@@ -205,7 +192,7 @@ Tienen que salir **siete errores**: seis del disparador de sólo agregado (UPDAT
 
 Captura de psql con los siete errores: [docs/evidencias/C-14_psql.png](docs/evidencias/C-14_psql.png). Los acentos salen mal en la captura por la codificación de la consola de Windows (psql + Git Bash/PowerShell); la salida con los acentos correctos está en [docs/evidencias/C-14_salida_psql.txt](docs/evidencias/C-14_salida_psql.txt).
 
-### 2.4 C-15: consultas del detalle de una orden
+### 2.3 C-15: consultas del detalle de una orden
 
 Con `SQL_ECHO=true`, pedir el detalle de una orden con 2 ítems y el de otra con 4 y comparar la cantidad de consultas que aparecen en la consola del servidor: tiene que ser la misma. El fragmento de consola queda en `docs/evidencias/C-15_consola.txt`.
 
@@ -219,7 +206,6 @@ app/core/            configuración, base, seguridad, dependencias, repositorio 
 app/modules/         health, usuarios, clientes, repuestos y ordenes
                      (router → service → unit of work → repository → model)
 migrations/          Alembic (dos versiones)
-tests/               suite pytest
 test/                casos .http y solo_agregado.sql
 docs/                consigna, bitácora y evidencias
 ```

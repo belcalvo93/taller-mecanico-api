@@ -5,7 +5,7 @@ Fuente de verdad del enunciado: `docs/consigna-tp.md` (TP Unidades 1 a 6). Si al
 
 ## Stack (versiones mínimas, no cambiar)
 Python 3.12 · FastAPI 0.111 (`fastapi[standard]`) · SQLModel 0.0.24 · SQLAlchemy 2.0 async · asyncpg 0.30 · PostgreSQL 16 o superior · Alembic 1.13 (plantilla async) · pydantic-settings 2.0 · bcrypt 4.0 · PyJWT 2.8.
-Tests de TDD: pytest + pytest-asyncio + httpx.AsyncClient contra una base PostgreSQL de prueba creada con `alembic upgrade head` (nunca `create_all`).
+Las pruebas son los .http de `test/` (C-01 a C-19) y `test/solo_agregado.sql`, corridos contra el servidor real después de `python seed.py`.
 
 ## Arquitectura obligatoria
 Router → Service → UoW → Repository → Model. Cada capa sabe lo suyo y nada más.
@@ -42,8 +42,8 @@ Módulos: `health` (sólo router.py), `usuarios` (Usuario, AsignacionRol, Intent
 
 ## Forma de trabajo (SDD)
 - Un change por vez, en el orden del roadmap. No se implementa nada que no esté en la spec del change activo.
-- TDD estricto: primero el test que falla (rojo), después el código mínimo (verde), después refactor. Cada escenario de la spec tiene al menos un test.
-- Antes de archivar un change: correr toda la suite y verificar contra cada regla RN y cada caso C que el change toca.
+- Las pruebas son los .http de `test/` (C-01 a C-19) y `test/solo_agregado.sql`, corridos contra el servidor real después de `python seed.py`.
+- Antes de archivar un change: correr los `.http` de los casos C que el change toca y verificar contra cada regla RN y cada caso C.
 - Commits chicos y en español, con el nombre del change.
 - Equipo de 5 (Belén, Elías, Hernán, Bruno, Joaquín): una rama por change `feat/<change>`, PR a main con revisión de un compañero. Los modelos los escribe sólo el change esquema-y-migraciones.
 

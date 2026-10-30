@@ -53,8 +53,8 @@ El detalle de cada change (alcance, tareas, RN, casos C, `.http`, dependencias) 
 ## Cómo trabajar en este repo
 
 1. **Antes de cada change**: leer su sección en `CHANGES.md` (CH-NN = issue #NN) y los archivos de `knowledge-base/` que indica en "Leer antes". No se implementa nada que no esté en el alcance de ese change.
-2. **Flujo por change**: rama `feat/<change>` → `/opsx:propose <change>` → `/opsx:apply <change>` (TDD estricto) → PR a `main` con `Closes #NN` y aprobación de un compañero → `/opsx:archive <change>` tras el merge.
-3. **Tests**: `tests/` es pytest; `test/` es `.http` y `solo_agregado.sql` (la reserva la consigna). Cada integrante escribe en `test/` los `.http` de sus casos C.
+2. **Flujo por change**: rama `feat/<change>` → `/opsx:propose <change>` → `/opsx:apply <change>` → PR a `main` con `Closes #NN` y aprobación de un compañero → `/opsx:archive <change>` tras el merge.
+3. **Tests**: las pruebas son los .http de `test/` (C-01 a C-19) y `test/solo_agregado.sql`, corridos contra el servidor real después de `python seed.py`. Cada integrante escribe en `test/` los `.http` de sus casos C.
 4. **Bitácora**: cada uno anota sus decisiones en `docs/bitacora.md` (fecha, qué le pidió al agente, qué corrigió a mano y por qué).
 
 ## Skills
