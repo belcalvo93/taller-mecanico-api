@@ -1,0 +1,59 @@
+Evidencia del caso C-14 — las tablas de sólo agregado rechazan UPDATE y DELETE (RN-15) y el catálogo de estados rechaza un estado inexistente (RN-19)
+Fecha: 2026-10-29 · Base: taller (migrada con `alembic upgrade head` y sembrada con `python seed.py`) · PostgreSQL 17.11
+
+Para repetirlo y sacar la captura (desde la raíz del repo, con PGPASSWORD o la contraseña de taller a mano):
+
+    python seed.py
+    psql -U taller -d taller -a -f test/solo_agregado.sql
+
+(`-a` hace que psql muestre cada sentencia antes de su error, así la captura se lee sola. Sin `-a` salen los mismos siete errores.)
+
+=== Conteos ANTES ===
+ historial_estado_orden | movimiento_stock | historial_precio_repuesto
+------------------------+------------------+---------------------------
+                      3 |                4 |                         1
+
+=== Salida de psql -a -f test/solo_agregado.sql (sin las líneas de comentario del archivo) ===
+\set ON_ERROR_STOP off
+\encoding UTF8
+
+UPDATE historial_estado_orden SET hasta_estado = 'CANCELADA' WHERE id = 1;
+psql:test/solo_agregado.sql:18: ERROR:  La tabla historial_estado_orden es de sólo agregado: no se permite UPDATE
+CONTEXTO:  función PL/pgSQL rechazar_cambio_solo_agregado() en la línea 3 en RAISE
+
+DELETE FROM historial_estado_orden WHERE id = 1;
+psql:test/solo_agregado.sql:22: ERROR:  La tabla historial_estado_orden es de sólo agregado: no se permite DELETE
+CONTEXTO:  función PL/pgSQL rechazar_cambio_solo_agregado() en la línea 3 en RAISE
+
+UPDATE movimiento_stock SET cantidad = 999 WHERE id = 1;
+psql:test/solo_agregado.sql:26: ERROR:  La tabla movimiento_stock es de sólo agregado: no se permite UPDATE
+CONTEXTO:  función PL/pgSQL rechazar_cambio_solo_agregado() en la línea 3 en RAISE
+
+DELETE FROM movimiento_stock WHERE id = 1;
+psql:test/solo_agregado.sql:30: ERROR:  La tabla movimiento_stock es de sólo agregado: no se permite DELETE
+CONTEXTO:  función PL/pgSQL rechazar_cambio_solo_agregado() en la línea 3 en RAISE
+
+UPDATE historial_precio_repuesto SET precio_nuevo = 1 WHERE id = 1;
+psql:test/solo_agregado.sql:34: ERROR:  La tabla historial_precio_repuesto es de sólo agregado: no se permite UPDATE
+CONTEXTO:  función PL/pgSQL rechazar_cambio_solo_agregado() en la línea 3 en RAISE
+
+DELETE FROM historial_precio_repuesto WHERE id = 1;
+psql:test/solo_agregado.sql:38: ERROR:  La tabla historial_precio_repuesto es de sólo agregado: no se permite DELETE
+CONTEXTO:  función PL/pgSQL rechazar_cambio_solo_agregado() en la línea 3 en RAISE
+
+UPDATE orden_trabajo SET estado = 'DEMORADA' WHERE id = 1;
+psql:test/solo_agregado.sql:43: ERROR:  inserción o actualización en la tabla «orden_trabajo» viola la llave foránea «fk_orden_trabajo_estado_estado_orden»
+DETALLE:  La llave (estado)=(DEMORADA) no está presente en la tabla «estado_orden».
+
+=== Conteos DESPUÉS (idénticos: ninguna sentencia modificó datos) ===
+ historial_estado_orden | movimiento_stock | historial_precio_repuesto
+------------------------+------------------+---------------------------
+                      3 |                4 |                         1
+
+La orden 1 sigue PENDIENTE y la 2 EN_REPARACION.
+
+=== Resumen ===
+Seis rechazos del disparador (UPDATE y DELETE en historial_estado_orden, movimiento_stock y historial_precio_repuesto) + un rechazo por la clave foránea fk_orden_trabajo_estado_estado_orden = 7 errores.
+El texto de los mensajes de PostgreSQL (CONTEXTO, DETALLE, «llave foránea») depende de lc_messages del servidor; el nombre de la restricción no.
+
+Captura de pantalla de psql: C-14_psql.png (en la captura los acentos salen mal por la codificación de la consola de Windows; esta salida los tiene correctos).
