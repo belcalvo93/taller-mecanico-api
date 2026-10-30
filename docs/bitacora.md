@@ -82,7 +82,7 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
   - Pedí que la revisión de la bitácora sólo listara las entradas que faltan de mis compañeros, sin redactarlas por ellos.
 
 **Notas de la sesión**
-- Resultado de la Fase A: los 11 `.http` pasan sin cambiar ninguno; C-14 da los siete errores (seis del disparador y uno de la FK) sin modificar datos. Detalle en `docs/evidencias/resultados-fase-a.md` y `docs/evidencias/C-14_salida_psql.txt`. Falta sacar la captura de pantalla de psql. Suite `pytest` sobre `taller_test`: 761 passed, y la base queda vacía.
+- Resultado de la Fase A: los 11 `.http` pasan sin cambiar ninguno; C-14 da los siete errores (seis del disparador y uno de la FK) sin modificar datos. Detalle en `docs/evidencias/resultados-fase-a.md` y `docs/evidencias/C-14_salida_psql.txt`. La captura de psql está en `docs/evidencias/C-14_psql.png`. Suite `pytest` sobre `taller_test`: 761 passed, y la base queda vacía.
 - Los pendientes que había anotado para este change pasaron al README (`.env` propio, usuario y bases `taller` y `taller_test`, generación de la clave de firma, comandos desde la raíz del repo, orden `alembic upgrade head` → `python seed.py`, C-14 y `taller_test` vacía tras la suite).
 - **Pendiente de aviso a Hernán (CH-04):** el contrato `app.state.hash_ficticio` / `app.state.bcrypt_semaforo` y el cambio de bcrypt 5.x con más de 72 bytes (el README lo menciona en las notas).
 - **Fase B pendiente** (cuando se mergee CH-08): C-06, C-10 a C-13, C-15 y C-17, evidencia de C-15, verificación de RN-01 a RN-20 y archivado de `autorizacion-y-roles`, `repuestos-y-stock` y `ordenes`.

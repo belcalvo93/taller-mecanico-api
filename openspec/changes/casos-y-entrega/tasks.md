@@ -27,7 +27,7 @@ Governance BAJO: consolidación y documentación, sin lógica nueva. No se reesc
 - [x] 3.1 Con la base migrada y `python seed.py`, anotar los conteos de `historial_estado_orden`, `movimiento_stock` e `historial_precio_repuesto`; verificar que el seed los dejó con filas
 - [x] 3.2 Ejecutar `psql -U taller -d taller -f test/solo_agregado.sql` y guardar la salida en `docs/evidencias/C-14_salida_psql.txt`; verificar que muestra siete errores (seis "es de sólo agregado" y uno por la FK `fk_orden_trabajo_estado_estado_orden`)
 - [x] 3.3 Volver a contar las tres tablas; verificar que los conteos no cambiaron
-- [x] 3.4 Dejar en `docs/evidencias/C-14_salida_psql.txt` el comando exacto para repetirlo, de modo que Belén saque la captura de pantalla; verificar que está el comando y que la captura queda anotada como pendiente de Belén
+- [x] 3.4 Dejar en `docs/evidencias/C-14_salida_psql.txt` el comando exacto para repetirlo, de modo que Belén saque la captura de pantalla; verificar que está el comando y que la captura (`docs/evidencias/C-14_psql.png`) está enlazada desde el README y `resultados-fase-a.md`
 
 ## 4. README y checklist de entrega
 
@@ -72,4 +72,4 @@ Governance BAJO: consolidación y documentación, sin lógica nueva. No se reesc
 
 - Abrir el PR de `feat/casos-y-entrega` a `main` con `Closes #9` y la aprobación de un compañero.
 - Tras el merge, archivar este change con `/opsx:archive casos-y-entrega`.
-- Belén saca la captura de pantalla de psql (C-14) y la del detalle con 2 y 4 ítems (C-15) para adjuntar a la entrega.
+- Belén saca la captura del detalle con 2 y 4 ítems (C-15) para adjuntar a la entrega (la de C-14 ya está en `docs/evidencias/C-14_psql.png`).

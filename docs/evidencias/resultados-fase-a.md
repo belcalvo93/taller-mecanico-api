@@ -27,7 +27,9 @@ Los `.http` se ejecutaron con un script descartable (httpx, fuera del repo) que 
 | C-16 | `C-16_busqueda_con_comillas.http` | `' OR '1'='1` lista vacía total 0; `q=freno&size=1` total 1 pages 1; page=2 422; size=500 422; PATCH parcial; PATCH stock 422; stock intacto | 200 vacía, 200 (FRE-010), 422 "La página 2 no existe: hay 1", 422, 200, 422 (`extra_forbidden`), 200 stock 4 | Aprobado | — |
 | C-18 | `C-18_historial_de_precios_y_permiso.http` | precio 9500 agrega una línea (8500 → 9500, usuario 1); el PATCH de descripción no agrega; recepción 403 en precios y PATCH; recepción 200 en el catálogo | 200, dos líneas, 200, mismas dos líneas, 403, 403, 200 | Aprobado | — |
 | C-19 | `C-19_baja_y_reuso_de_patente.http` | 204 baja; 201 misma patente para Jorge; 409 segunda vigente igual; 404 baja repetida; 409 con orden abierta | 200, 200, 204, 200, 201 (id 4), 409, 404, 409 | Aprobado | — |
-| C-14 | `solo_agregado.sql` | siete rechazos (seis del disparador y uno de la FK), sin cambiar datos | siete errores; conteos de las tres tablas iguales antes y después (3, 4, 1). Salida en `C-14_salida_psql.txt` | Aprobado (captura de pantalla pendiente de Belén) | — |
+| C-14 | `solo_agregado.sql` | siete rechazos (seis del disparador y uno de la FK), sin cambiar datos | siete errores; conteos de las tres tablas iguales antes y después (3, 4, 1). Salida en `C-14_salida_psql.txt` | Aprobado | — |
+
+Captura de psql: [C-14_psql.png](C-14_psql.png). Los acentos salen mal en la captura por la codificación de la consola de Windows (psql + Git Bash/PowerShell); la salida con los acentos correctos está en [C-14_salida_psql.txt](C-14_salida_psql.txt).
 
 ## Pendientes de CH-08 (Fase B)
 
@@ -107,7 +109,7 @@ Hallazgos (informativos, sin corregir):
 | Pendientes de CH-08 (Fase B) | 7: C-06, C-10, C-11, C-12, C-13, C-15 y C-17 |
 | Total | 12 + 0 + 7 = 19 |
 | Confirmar a mano con REST Client | C-04 y C-05 (tiempos); C-03 paso 5 con un token real |
-| Captura de pantalla pendiente de Belén | C-14 (psql) |
+| Captura de pantalla de C-14 (psql) | [C-14_psql.png](C-14_psql.png) |
 | Suite pytest | 761 passed |
 | Checklist de entrega | todos los ítems OK; dos hallazgos informativos (archivos de herramientas versionados, `test/.gitkeep`) |
 | Bitácora | falta la entrada de CH-08 de Elías; la de Belén para CH-09 se cierra con la Fase B |

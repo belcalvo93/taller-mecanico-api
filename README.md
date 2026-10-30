@@ -179,6 +179,8 @@ Cuando un archivo necesita varias sesiones a la vez (por ejemplo C-07), cada log
 | C-18 | historial de precios y permiso |
 | C-19 | baja de un vehículo y reutilización de la patente |
 
+Los `.http` de C-06, C-10 a C-13, C-15 y C-17 y la evidencia de C-15 (`docs/evidencias/C-15_consola.txt`) llegan con CH-08 (órdenes).
+
 ### 2.3 C-14: sólo agregado (psql)
 
 Con la base migrada y sembrada:
@@ -188,6 +190,8 @@ psql -U taller -d taller -f test/solo_agregado.sql
 ```
 
 Tienen que salir **siete errores**: seis del disparador de sólo agregado (UPDATE y DELETE sobre `historial_estado_orden`, `movimiento_stock` e `historial_precio_repuesto`) y uno de la clave foránea `fk_orden_trabajo_estado_estado_orden` (estado inexistente). El idioma del texto de los errores depende del servidor; el nombre de la restricción no. Salida de referencia: [docs/evidencias/C-14_salida_psql.txt](docs/evidencias/C-14_salida_psql.txt).
+
+Captura de psql con los siete errores: [docs/evidencias/C-14_psql.png](docs/evidencias/C-14_psql.png). Los acentos salen mal en la captura por la codificación de la consola de Windows (psql + Git Bash/PowerShell); la salida con los acentos correctos está en [docs/evidencias/C-14_salida_psql.txt](docs/evidencias/C-14_salida_psql.txt).
 
 ### 2.4 C-15: consultas del detalle de una orden
 

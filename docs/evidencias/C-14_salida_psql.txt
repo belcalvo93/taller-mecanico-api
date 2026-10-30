@@ -56,4 +56,4 @@ La orden 1 sigue PENDIENTE y la 2 EN_REPARACION.
 Seis rechazos del disparador (UPDATE y DELETE en historial_estado_orden, movimiento_stock y historial_precio_repuesto) + un rechazo por la clave foránea fk_orden_trabajo_estado_estado_orden = 7 errores.
 El texto de los mensajes de PostgreSQL (CONTEXTO, DETALLE, «llave foránea») depende de lc_messages del servidor; el nombre de la restricción no.
 
-Captura de pantalla de psql: pendiente de Belén.
+Captura de pantalla de psql: C-14_psql.png (en la captura los acentos salen mal por la codificación de la consola de Windows; esta salida los tiene correctos).
