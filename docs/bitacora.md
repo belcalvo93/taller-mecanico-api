@@ -73,6 +73,20 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 
 **Decisiones del design aprobadas:** D4, `asignacion_rol.otorgada_por` es FK a `usuario.id` (NULL = lo otorgó el sistema); D5, relaciones en los dos extremos con `lazy="raise"` (hay que precargar con `selectinload`/`joinedload`); D6, el registro `app/modules/modelos.py` y su import en `main.py`; D9, trigger por sentencia y `TRUNCATE` permitido (ver arriba). Además: `intento_acceso.ip` es texto y las revisiones se llaman `0001` y `0002`.
 
+### 2026-10-29 · CH-09 casos-y-entrega (Fase A)
+- **Fecha:** 2026-10-29
+- **Qué le pidió al agente:** armar el change `casos-y-entrega` en dos fases (Fase A con CH-01 a CH-07 mergeados; Fase B cuando entre CH-08) y aplicar la Fase A: correr los 11 `.http` disponibles después de `python seed.py`, preparar la evidencia de C-14 en psql, escribir el README con los pasos desde cero y probarlo en `taller_readme`, hacer el checklist de entrega, revisar esta bitácora y correr la suite. Sin tocar los `.http` ni el código de mis compañeros, sin commits y sin líneas de atribución.
+- **Qué corrigió a mano y por qué:**
+  - Pedí frenar después de los 11 `.http` para ver el resultado de cada caso antes de seguir con C-14 y el README.
+  - Indiqué usar la base `taller_readme` que ya había creado (owner `taller`) y que el agente no creara ni borrara bases.
+  - Pedí que la revisión de la bitácora sólo listara las entradas que faltan de mis compañeros, sin redactarlas por ellos.
+
+**Notas de la sesión**
+- Resultado de la Fase A: los 11 `.http` pasan sin cambiar ninguno; C-14 da los siete errores (seis del disparador y uno de la FK) sin modificar datos. Detalle en `docs/evidencias/resultados-fase-a.md` y `docs/evidencias/C-14_salida_psql.txt`. Falta sacar la captura de pantalla de psql. Suite `pytest` sobre `taller_test`: 761 passed, y la base queda vacía.
+- Los pendientes que había anotado para este change pasaron al README (`.env` propio, usuario y bases `taller` y `taller_test`, generación de la clave de firma, comandos desde la raíz del repo, orden `alembic upgrade head` → `python seed.py`, C-14 y `taller_test` vacía tras la suite).
+- **Pendiente de aviso a Hernán (CH-04):** el contrato `app.state.hash_ficticio` / `app.state.bcrypt_semaforo` y el cambio de bcrypt 5.x con más de 72 bytes (el README lo menciona en las notas).
+- **Fase B pendiente** (cuando se mergee CH-08): C-06, C-10 a C-13, C-15 y C-17, evidencia de C-15, verificación de RN-01 a RN-20 y archivado de `autorizacion-y-roles`, `repuestos-y-stock` y `ordenes`.
+
 ## Elías
 
 ### 2026-10-27 · CH-03 nucleo-repositorios-uow
@@ -166,12 +180,3 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 - Con FastAPI nuevo `include_router` es perezoso: para ver en qué grupo está cada ruta, el test arma una app con ese grupo solo y lee `openapi()`.
 - Mutaciones para comprobar que los tests muerden: sacar la traducción del 409, el 404 previo, el chequeo de órdenes abiertas, el tope del id, el `requiere_rol` de una ruta, el filtro de vigentes y el de dueño → cada una hace fallar al menos un test. `populate_existing` se sacó porque ningún test lo justificaba.
 - Suite sobre `main` con CH-03 y CH-04: 372 → 500 passed. C-19 corrido contra uvicorn después de `seed.py`, con el login real de recepción: 200 con la cookie HttpOnly, 204, 201, 409, 404 y 409, como dice cada comentario.
-
-## Pendientes para CH-09 (README)
-
-- Cada integrante crea su propio `.env` a partir de `env.example`, su usuario de PostgreSQL y las bases `taller` y `taller_test`.
-- Documentar cómo generar la clave de firma (`python -c "import secrets; print(secrets.token_urlsafe(64))"`) y que no se comparte ni se versiona.
-- Avisar a Hernán (CH-04) del contrato `app.state.hash_ficticio` / `app.state.bcrypt_semaforo` y del cambio de bcrypt 5.x con más de 72 bytes.
-- (CH-02) Alembic y `python seed.py` se corren **desde la raíz del repo**: el `.env` se lee relativo al directorio actual y, si no lo encuentra, falla con un error de configuración (no deja un esquema a medias). Orden de arranque: `alembic upgrade head` y después `python seed.py`.
-- (CH-02) Captura del caso C-14: con la base migrada y sembrada, `psql -U taller -d taller -f test/solo_agregado.sql` muestra los siete errores (seis del trigger de sólo agregado y uno de la FK `fk_orden_trabajo_estado_estado_orden`). El texto del último error depende del idioma del servidor.
-- (CH-02) Los tests dejan `taller_test` vacía; si se corre `seed.py` a mano sobre `taller_test`, hay que vaciarla antes de correr la suite (o volver a correrla desde `alembic downgrade base` y `upgrade head`).
