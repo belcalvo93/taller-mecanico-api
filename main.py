@@ -13,6 +13,7 @@ import app.modules.modelos  # noqa: F401  (registra los 13 mapeos; sin esto las 
 from app.modules.health.router import router as health_router
 from app.modules.usuarios.router import router as auth_router, usuarios_router
 from app.modules.clientes.router import router as clientes_router
+from app.modules.ordenes.router import router as ordenes_router
 from app.modules.repuestos.router import router as repuestos_router
 
 
@@ -76,8 +77,8 @@ rutas_abiertas.include_router(health_router)
 rutas_abiertas.include_router(auth_router)
 rutas_protegidas.include_router(usuarios_router)  # CH-05
 rutas_protegidas.include_router(clientes_router)  # CH-06
+rutas_protegidas.include_router(ordenes_router)  # CH-08
 rutas_protegidas.include_router(repuestos_router)  # CH-07
-# CH-08: rutas_protegidas.include_router(ordenes_router)
 
 app.include_router(rutas_abiertas)
 app.include_router(rutas_protegidas)

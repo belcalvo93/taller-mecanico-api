@@ -1,0 +1,14 @@
+# C-12 - evidencia del aviso (servidor con SQL_ECHO=true, ejecucion de test/C-12_reponer_y_terminar.http, 2026-10-29)
+# Linea de respuesta de terminar y, despues, el aviso (el runner siguio con los pasos 5 y 6 mientras tanto: el aviso sale en segundo plano, tras enviar la respuesta).
+
+--- respuesta de terminar (log linea 595)
+INFO:     127.0.0.1:53941 - "POST /ordenes/2/terminar HTTP/1.1" 200 OK
+--- lineas de acceso que ocurrieron antes del aviso
+INFO:     127.0.0.1:53941 - "GET /repuestos/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53941 - "GET /repuestos/3/movimientos HTTP/1.1" 200 OK
+--- aviso (log linea 630)
+Aviso a Jorge Gómez: su vehículo AD789GH (orden 2) está listo para retirar
+
+--- orden en el log
+595:INFO:     127.0.0.1:53941 - "POST /ordenes/2/terminar HTTP/1.1" 200 OK
+630:Aviso a Jorge Gómez: su vehículo AD789GH (orden 2) está listo para retirar

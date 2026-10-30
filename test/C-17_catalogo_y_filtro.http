@@ -1,0 +1,36 @@
+# C-17 — Catálogo de estados de sólo lectura y filtro por estado. (RN-19, AP-02)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+
+@base = http://localhost:8000
+
+### 1. Sin cookie
+# Esperado: 401
+GET {{base}}/estados-orden
+# @no-cookie-jar
+
+### 2. Login de recepción
+# @name loginRecepcion
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 3. Catálogo
+# Esperado: 200 con PENDIENTE(1), EN_REPARACION(2), TERMINADA(3, es_final), CANCELADA(4, es_final)
+GET {{base}}/estados-orden
+
+### 4. El catálogo no se escribe
+# Esperado: 405
+POST {{base}}/estados-orden
+Content-Type: application/json
+
+{"codigo": "ENTREGADA", "descripcion": "x", "posicion": 5, "es_final": true}
+
+### 5. Filtro por estado
+# Esperado: 200 con sólo la orden 1, "total": 1, "pages": 1
+GET {{base}}/ordenes?estado=PENDIENTE
+
+### 6. Estado que el catálogo no tiene
+# Esperado: 422
+GET {{base}}/ordenes?estado=ENTREGADA

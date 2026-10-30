@@ -1,0 +1,46 @@
+# C-11 — Terminar una orden sin stock suficiente: 409 y NADA cambia (ni estado, ni stock,
+# ni movimientos, ni historial). (RN-13, RN-14)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: orden 2 EN_REPARACION (mecánico 4) con BUJ-100 x4; BUJ-100 (repuesto 3)
+# tiene stock 2. Dos sesiones: mecánico (el asignado) y administrador (para verificar).
+
+@base = http://localhost:8000
+
+### 1. Login del mecánico
+# @name loginMecanico
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mecanico.2026"}
+
+### 2. Login del administrador
+# @name loginAdmin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+### 3. El mecánico termina la orden 2 (pide 4 bujías, hay 2)
+# Esperado: 409 "No hay stock suficiente de BUJ-100"; sin aviso en la consola del servidor
+# @no-cookie-jar
+POST {{base}}/ordenes/2/terminar
+Cookie: {{loginMecanico.response.headers.Set-Cookie}}
+
+### 4. La orden sigue igual
+# Esperado: 200 con "estado": "EN_REPARACION" y el historial con 2 líneas (sin línea nueva)
+# @no-cookie-jar
+GET {{base}}/ordenes/2
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+### 5. El stock sigue igual
+# Esperado: 200 y BUJ-100 con "stock": 2
+# @no-cookie-jar
+GET {{base}}/repuestos/3
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+### 6. No se escribió ningún movimiento de la orden
+# Esperado: 200 sin movimientos con "orden_id": 2 (el último sigue siendo el del seed)
+# @no-cookie-jar
+GET {{base}}/repuestos/3/movimientos
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}

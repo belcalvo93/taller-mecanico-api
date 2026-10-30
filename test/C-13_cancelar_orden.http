@@ -1,0 +1,50 @@
+# C-13 — Cancelar una orden: el dueño cancela la suya (200) y no la ajena
+# (403, antes que cualquier 409). (RN-12, RN-17)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: orden 1 PENDIENTE de Laura; orden 2 EN_REPARACION de Jorge.
+# El tramo "terminada → 409" (pasos 5a y 5b) necesita una orden terminada por la API:
+# correr antes test/C-12_reponer_y_terminar.http.
+
+@base = http://localhost:8000
+
+### 1. Login de Laura
+# @name loginLaura
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "cliente@example.com", "password": "Cliente.2026"}
+
+### 2. Laura cancela la orden 2 (ajena, además EN_REPARACION)
+# Esperado: 403 (el permiso se decide antes que el estado)
+# @no-cookie-jar
+POST {{base}}/ordenes/2/cancelar
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 3. Laura cancela la orden 1 (suya, PENDIENTE)
+# Esperado: 200 con "estado": "CANCELADA" y una línea de historial PENDIENTE -> CANCELADA con "usuario_id": 6
+# @no-cookie-jar
+POST {{base}}/ordenes/1/cancelar
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 4. Laura vuelve a cancelar la orden 1
+# Esperado: 409 "La orden está en CANCELADA: no se puede cancelar"
+# @no-cookie-jar
+POST {{base}}/ordenes/1/cancelar
+Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 5. Una orden TERMINADA ya no se cancela
+# Para tener una orden terminada: correr antes test/C-12_reponer_y_terminar.http (termina la orden 2).
+# Esperado: 409 "La orden está en TERMINADA: no se puede cancelar"
+### 5a. Login de recepción
+# @name loginRecepcion
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 5b. Recepción cancela la orden 2 (TERMINADA)
+# Esperado: 409
+# @no-cookie-jar
+POST {{base}}/ordenes/2/cancelar
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}

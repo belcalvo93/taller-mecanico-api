@@ -1,0 +1,54 @@
+# C-10 — Alta de una orden: precios copiados y total calculado por el servidor
+# (201) y repuesto inexistente (409, sin dejar filas). (RN-10, RN-16)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py
+# Datos del seed: vehículo 2 = AC456EF (de Laura); repuestos 2 FRE-010
+# (32000.00) y 4 ACE-530 (12000.00). Una sola sesión (recepción).
+
+@base = http://localhost:8000
+
+### 1. Login de recepción
+# Esperado: 200 y Set-Cookie: access_token=...; HttpOnly
+# @name loginRecepcion
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 2. Alta con dos ítems
+# Esperado: 201 con "estado": "PENDIENTE", "patente": "AC456EF",
+# "cliente": "Laura Cliente", "mecanico_id": null, "total": "68000.00",
+# ítems con subtotal "32000.00" y "36000.00" e historial de una línea
+# (null -> PENDIENTE) con "usuario_id": 3
+POST {{base}}/ordenes
+Content-Type: application/json
+
+{
+  "vehiculo_id": 2,
+  "falla": "Frenos que rechinan",
+  "items": [
+    {"repuesto_id": 2, "cantidad": 1},
+    {"repuesto_id": 4, "cantidad": 3}
+  ]
+}
+
+### 3. Alta con un repuesto inexistente
+# Esperado: 409 con un mensaje propio (sin texto de la base) y NO se crea la orden
+POST {{base}}/ordenes
+Content-Type: application/json
+
+{
+  "vehiculo_id": 2,
+  "falla": "Frenos que rechinan",
+  "items": [
+    {"repuesto_id": 2, "cantidad": 1},
+    {"repuesto_id": 999, "cantidad": 1}
+  ]
+}
+
+### 4. El cuerpo trae un total
+# Esperado: 422 (campo no declarado)
+POST {{base}}/ordenes
+Content-Type: application/json
+
+{"vehiculo_id": 2, "falla": "x", "total": "1.00", "items": [{"repuesto_id": 2, "cantidad": 1}]}

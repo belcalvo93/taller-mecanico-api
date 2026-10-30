@@ -20,3 +20,8 @@ GET {{base}}/usuarios/abc/roles
 GET {{base}}/clientes/abc
 
 # Esperado: 422
+
+### 4) id no entero en /ordenes/{id}
+GET {{base}}/ordenes/abc
+
+# Esperado: 422

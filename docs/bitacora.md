@@ -130,6 +130,20 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
   - En `POST /usuarios/{id}/roles`, se validó en el contrato (`AsignarRolRequest`) que `vence_en` sin zona horaria (naive) o en el pasado responda `422 Unprocessable Entity` (nunca `409`, caso `C-07`). Además, al reasignar un rol cuya asignación anterior había vencido (`vence_en <= ahora` con `revocada_en IS NULL`), el servicio cierra la fila vencida con `revocada_en = ahora` antes de insertar la nueva para respetar el índice único parcial `uq_asignacion_rol_abierta` sin borrar historial (`RN-03`).
   - Se validaron los parámetros de ruta `id` (`1..2147483647`) y `rol` en el contrato para que entradas inválidas o fuera del rango de `INTEGER` respondan `422` sin ejecutar el servicio (`C-01`, `RN-18`).
 
+### 2026-10-29 · CH-08 ordenes
+- **Fecha:** 2026-10-29
+- **Qué le pidió al agente:** revisar el estado del repo; revisar y aprobar el PR #19 de Hernán (CH-05); proponer CH-08 con `/opsx:propose`; implementar los grupos 0 a 8 con TDD estricto mientras CH-07 no estaba; preparar las instrucciones para Bruno con la firma de `mover_stock` (sin `commit` y sin UoW propio); simular el merge con la rama de Bruno para detectar conflictos (solo `main.py`; 902 tests juntos); tras el merge de CH-07, actualizar la rama, resolver `main.py` e implementar el grupo 9 (descuento de stock al terminar y aviso en `BackgroundTasks`); agregar el bloqueo `FOR UPDATE` de los repuestos al terminar (pérdida de un descuento entre dos órdenes que comparten repuesto, demostrada con un test que fallaba).
+- **Qué corrigió a mano y por qué:**
+  - **D5:** vehículo inexistente o dado de baja y total que no entra en `NUMERIC(12,2)` responden 409 con mensaje propio: el id viaja en el cuerpo, no en la ruta, y un total excedido daría un 500 (RN-18).
+  - **D8:** `/mis-ordenes` incluye las órdenes de vehículos dados de baja (son historia del cliente) y el dueño conserva el permiso sobre la orden aunque el vehículo esté dado de baja.
+  - **D11:** el aviso usa el logger `taller.avisos` con handler propio, porque uvicorn no configura el logger raíz; si CH-09 configura el logging global, el aviso puede duplicarse.
+  - En las rutas con `{id}` se responde 404 antes que 403 (una orden inexistente no tiene relación con nadie).
+  - Mientras CH-07 no estaba, `terminar` fallaba de forma explícita en vez de dejar órdenes TERMINADA sin descontar stock; se reemplazó por el descuento real al llegar CH-07.
+  - Bloqueo de repuestos al terminar: bloquear solo la orden no alcanzaba, porque `mover_stock` escribe el stock absoluto y dos órdenes con el mismo repuesto pisaban un descuento. Se agregó `OrdenRepository.bloquear_repuestos` (`FOR UPDATE` por id ascendente).
+
+**Pendiente**
+- Correr los `.http` contra el servidor con `python seed.py` (C-06, C-10 a C-13, C-15, C-17) y capturar la consola de C-15 y del aviso de C-12 para CH-09.
+
 ## Bruno
 
 ### 2026-10-29 · CH-07 repuestos-y-stock

@@ -1,0 +1,53 @@
+# C-12 — Reponer stock y terminar: se descuenta una vez por ítem, queda un movimiento
+# por ítem con "orden_id", la orden pasa a TERMINADA y el servidor muestra el aviso al
+# cliente DESPUÉS de enviada la respuesta. (RN-13, RN-14, DD-14)
+#
+# ANTES DE CORRER ESTE ARCHIVO: python seed.py (la orden 2 debe seguir EN_REPARACION)
+# Datos del seed: orden 2 EN_REPARACION (mecánico 4) con BUJ-100 x4; BUJ-100 (repuesto 3)
+# tiene stock 2. Dos sesiones: administrador (repone) y mecánico (termina).
+
+@base = http://localhost:8000
+
+### 1. Login del administrador
+# @name loginAdmin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@example.com", "password": "Admin.2026"}
+
+### 2. Login del mecánico
+# @name loginMecanico
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "mecanico@example.com", "password": "Mecanico.2026"}
+
+### 3. El administrador repone 10 bujías
+# Esperado: 200 con BUJ-100 en "stock": 12
+# @no-cookie-jar
+POST {{base}}/repuestos/3/reponer
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+Content-Type: application/json
+
+{"cantidad": 10, "motivo": "Compra a proveedor"}
+
+### 4. El mecánico termina la orden 2
+# Esperado: 200 con "estado": "TERMINADA" y una última línea de historial
+# EN_REPARACION -> TERMINADA con "usuario_id": 4.
+# En la consola del servidor, medio segundo DESPUÉS de la respuesta, el aviso:
+# "Aviso a Jorge Gómez: su vehículo AD789GH (orden 2) está listo para retirar"
+# @no-cookie-jar
+POST {{base}}/ordenes/2/terminar
+Cookie: {{loginMecanico.response.headers.Set-Cookie}}
+
+### 5. El stock bajó 4
+# Esperado: 200 y BUJ-100 con "stock": 8
+# @no-cookie-jar
+GET {{base}}/repuestos/3
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
+
+### 6. Un movimiento de -4 con la orden
+# Esperado: 200 y un movimiento con "cantidad": -4, "orden_id": 2, "motivo": "Orden 2 terminada"
+# @no-cookie-jar
+GET {{base}}/repuestos/3/movimientos
+Cookie: {{loginAdmin.response.headers.Set-Cookie}}
