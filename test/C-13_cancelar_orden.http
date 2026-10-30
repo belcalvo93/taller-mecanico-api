@@ -3,8 +3,8 @@
 #
 # ANTES DE CORRER ESTE ARCHIVO: python seed.py
 # Datos del seed: orden 1 PENDIENTE de Laura; orden 2 EN_REPARACION de Jorge.
-# Falta el tramo "terminada → 409": necesita terminar una orden por la API y se
-# agrega cuando CH-07 esté en main (tarea 9.9 de CH-08).
+# El tramo "terminada → 409" (pasos 5a y 5b) necesita una orden terminada por la API:
+# correr antes test/C-12_reponer_y_terminar.http.
 
 @base = http://localhost:8000
 
@@ -32,3 +32,19 @@ Cookie: {{loginLaura.response.headers.Set-Cookie}}
 # @no-cookie-jar
 POST {{base}}/ordenes/1/cancelar
 Cookie: {{loginLaura.response.headers.Set-Cookie}}
+
+### 5. Una orden TERMINADA ya no se cancela
+# Para tener una orden terminada: correr antes test/C-12_reponer_y_terminar.http (termina la orden 2).
+# Esperado: 409 "La orden está en TERMINADA: no se puede cancelar"
+### 5a. Login de recepción
+# @name loginRecepcion
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email": "recepcion@example.com", "password": "Recepcion.2026"}
+
+### 5b. Recepción cancela la orden 2 (TERMINADA)
+# Esperado: 409
+# @no-cookie-jar
+POST {{base}}/ordenes/2/cancelar
+Cookie: {{loginRecepcion.response.headers.Set-Cookie}}
