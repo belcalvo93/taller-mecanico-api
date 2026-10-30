@@ -46,6 +46,14 @@ CREATE DATABASE taller_test OWNER taller;
 
 Cada integrante usa su propio usuario y su propia contraseña: no se comparten ni se suben al repositorio.
 
+> **Windows: si PowerShell dice que no encuentra `psql`**, es porque el instalador de PostgreSQL no agrega su carpeta `bin` al PATH. Usá la ruta completa (cambiá `17` por tu versión), con el `&` adelante porque la ruta tiene espacios:
+>
+> ```powershell
+> & "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres
+> ```
+>
+> O agregala al PATH sólo para esa ventana: `$env:Path += ";C:\Program Files\PostgreSQL\17\bin"`. `psql` pide la contraseña del usuario `postgres` (la que elegiste al instalar PostgreSQL) y no muestra nada mientras la escribís.
+
 ### 1.3 Variables de entorno (`.env`)
 
 ```bash
@@ -94,6 +102,10 @@ alembic current
 ```
 
 El último comando tiene que mostrar `0002 (head)`.
+
+> **Si Alembic falla con `connection was closed in the middle of operation`** (en Windows, acompañado de `WinError 64`), casi siempre es **`POSTGRES_PASSWORD` equivocada** en `.env`: con una contraseña incorrecta, PostgreSQL corta la conexión y el controlador no lo informa como error de contraseña. Tiene que ser la del usuario `taller` del paso 1.2, no la de `postgres`. Para descartarlo: `psql -U taller -d taller -h localhost` con esa contraseña tiene que entrar.
+>
+> Si en cambio falla con un error de validación de `JWT_SECRET_KEY` o `POSTGRES_PASSWORD`, falta ese valor en `.env` (o la línea está repetida y la última quedó vacía: gana la última).
 
 ### 1.5 Datos iniciales (`seed.py`)
 
