@@ -66,7 +66,7 @@ Governance BAJO: consolidación y documentación, sin lógica nueva. No se reesc
 - [x] 8.3 Archivar `autorizacion-y-roles` con `/opsx:archive`; verificar que pasa a `openspec/changes/archive/` y sus specs se sincronizan en `openspec/specs/`
 - [x] 8.4 Archivar `repuestos-y-stock` con `/opsx:archive`; verificar lo mismo
 - [x] 8.5 Archivar `ordenes` con `/opsx:archive`; verificar lo mismo
-- [ ] 8.6 Actualizar la bitácora de Belén y marcar CH-09 como hecho en `CHANGES.md` (campo Estado); verificar que `openspec list` ya no muestra changes pendientes salvo este
+- [x] 8.6 Actualizar la bitácora de Belén y marcar CH-09 como hecho en `CHANGES.md` (campo Estado); verificar que `openspec list` ya no muestra changes pendientes salvo este
 
 ## Workflow follow-up
 

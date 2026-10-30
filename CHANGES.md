@@ -293,7 +293,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 ---
 
 ### [CH-05] `autorizacion-y-roles`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Hernán · ola 2 (después de CH-04; lun 26 – mié 28/10)
 - **Scope**: usuario actual, roles vigentes, administración de personal y de roles, eventos y control del cambio obligatorio
   - **Reemplaza/completa las dependencias provisorias de CH-04 (T1)** con la versión real, **sin cambiar las firmas** (CH-06 y CH-07 ya las importan): roles vigentes leídos de la base en cada petición, 401/403 por todas las causas y control del cambio obligatorio de contraseña
@@ -349,7 +349,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 ---
 
 ### [CH-07] `repuestos-y-stock`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Bruno · ola 2 (lun 26 – mié 28/10)
 - **Scope**: catálogo de repuestos, reposición y trazabilidad de stock y de precios
   - `app/modules/repuestos/{repository,unit_of_work,schemas,service,router}.py`: `RepuestoRepository(SoftDeleteRepository[Repuesto])` (búsqueda `q` por descripción con **parámetros ligados**, nunca concatenación), repositorios de `MovimientoStock` e `HistorialPrecio` (sólo agregan; sin endpoint de alta propio, AP-01), UoW de `repuestos`
@@ -382,7 +382,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 > Un solo change, y está en el camino crítico. Elías prepara desde la ola 2 (`/opsx:explore`, lectura de los flujos 7-10 y 12) pero no mergea hasta que CH-04 y CH-05 (completos), CH-06 y CH-07 estén en `main`.
 
 ### [CH-08] `ordenes`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Elías · ola 3 (mié 28 – jue 29/10)
 - **Scope**: ciclo de vida de la orden de trabajo, catálogo de estados y consultas sin N+1
   - `app/modules/ordenes/{repository,unit_of_work,schemas,service,router}.py`: `OrdenRepository` (detalle con **carga anticipada declarada dentro del método**: vehículo, cliente, ítems, repuesto de cada ítem e historial con `selectinload`/`joinedload`; número de consultas fijo, igual con 2 que con 4 ítems), `HistorialEstadoOrdenRepository` (sólo agrega), `EstadoOrdenRepository` **de sólo lectura que NO hereda de `BaseRepository`** (PK `codigo`), UoW de `ordenes` que reúne esos repositorios y los de stock/vehículos que necesite con la misma sesión
@@ -412,7 +412,7 @@ Los pasos 1-2 y 2-3 se solapan a propósito (el traspaso de ola es "PR mergeado"
 ## FASE 4 — Cierre: consolidación, evidencias y entrega (Ola 4 · jue 29 – vie 30/10 a la mañana)
 
 ### [CH-09] `casos-y-entrega`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Responsable / Ola**: Belén · ola 4 (jue 29 – vie 30/10 a la mañana)
 - **Scope**: **SÓLO consolida, corre todo y saca las evidencias** (DD-07, DD-16); cada integrante ya escribió los `.http` de sus casos en su propio change
   - Consolidar `test/` y verificar que existe un `.http` por cada caso **C-01..C-19**, cada uno con la respuesta esperada en un comentario; correr `python seed.py` antes de cada archivo y ejecutar los 19 contra el servidor; reportar a su dueño cualquier caso que falle (no reescribirlos)
