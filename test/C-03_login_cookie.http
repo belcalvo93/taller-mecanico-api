@@ -32,9 +32,10 @@ GET {{base}}/auth/yo
 
 # Esperado: 401
 
-### 5) Sólo con Authorization: Bearer (pegar el token del paso 1), sin cookie
+### 5) Sólo con Authorization: Bearer (con el token del paso 1), sin cookie
+# @no-cookie-jar
 GET {{base}}/auth/yo
-Authorization: Bearer PEGAR_ACA_EL_TOKEN_DEL_PASO_1
+Authorization: Bearer {{login.response.headers.Set-Cookie}}
 Cookie:
 
 # Esperado: 401 (la dependencia lee únicamente request.cookies["access_token"])
