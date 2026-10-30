@@ -8,7 +8,7 @@
 ## 0. Red de seguridad
 
 - [x] 0.1 Correr la suite completa sobre `main` (`b7e5b73`) y anotar la línea base (N passed) en la bitácora; si algo falla, frenar y reportarlo como falla previa
-- [ ] 0.2 Acordar con Bruno la firma del punto único de stock (design D4: vive en el repositorio, recibe la sesión, hace flush sin commit, no abre UoW) y dejarlo escrito en el issue #7 o #8
+- [x] 0.2 Acordar con Bruno la firma del punto único de stock (design D4: vive en el repositorio, recibe la sesión, hace flush sin commit, no abre UoW) y dejarlo escrito en el issue #7 o #8 — la firma de `mover_stock` del PR #20 coincide con D4
 
 ## 1. Catálogo de estados (sólo lectura) y registro del router
 
@@ -16,14 +16,14 @@
 - [x] 1.2 ROJO→VERDE el repositorio no hereda de `BaseRepository` y no tiene `add`, `update` ni `delete` (D3)
 - [x] 1.3 ROJO→VERDE `EstadoOrdenCodigo` (enum en `schemas.py`): sus valores son exactamente los códigos que carga `seed.py`
 - [x] 1.4 ROJO→VERDE `GET /estados-orden` con sesión real (login): 200 con los 4 por posición para ADMIN y para Laura (sólo CLIENTE); sin cookie → 401; `POST`/`DELETE /estados-orden` → 405 (C-17, parte). Incluye `router.py` mínimo y la línea `include_router` de CH-08 en el grupo protegido de `main.py`, verificada con un test de que las rutas de órdenes están en el grupo protegido y no en el abierto
-- [ ] 1.5 Commit: `feat(ordenes): catálogo de estados de sólo lectura y GET /estados-orden`
+- [x] 1.5 Commit: `feat(ordenes): catálogo de estados de sólo lectura y GET /estados-orden` (agrupado en los commits de feat/ordenes)
 
 ## 2. Contratos
 
 - [x] 2.1 ROJO→VERDE `tests/test_ordenes_contratos.py` `OrdenCrear`: acepta el cuerpo de ejemplo de la consigna; rechaza `total`, `estado`, `creada_en` y `precio_unitario` en un ítem (`extra="forbid"`); `items` vacío; `falla` vacía, sólo espacios o con NUL
 - [x] 2.2 ROJO→VERDE `ItemOrdenCrear` y validación de lista: `repuesto_id` repetido → error; `cantidad` 0, −1 y 10 001 → error, 1 y 10 000 → ok; ids 0 y 2 147 483 648 → error; más de 50 ítems → error
 - [x] 2.3 ROJO→VERDE `armar_detalle(orden)` (función pura, sin base): con una orden en memoria de dos ítems calcula `subtotal` por ítem, ordena los ítems por `id`, toma `patente` y `cliente` de las relaciones y serializa importes como `"32000.00"`; TRIANGULAR con cantidades y precios distintos
-- [ ] 2.4 Commit: `feat(ordenes): contratos de entrada y salida`
+- [x] 2.4 Commit: `feat(ordenes): contratos de entrada y salida` (agrupado en los commits de feat/ordenes)
 
 ## 3. Repositorios y Unit of Work del módulo
 
@@ -35,7 +35,7 @@
 - [x] 3.6 ROJO→VERDE `get_para_transicion(id)`: trae vehículo→cliente e ítems precargados y emite `FOR UPDATE` (se ve en las sentencias); `None` si no existe
 - [x] 3.7 ROJO→VERDE `HistorialEstadoOrdenRepository.add` agrega con flush sin confirmar (otra sesión no la ve hasta el commit)
 - [x] 3.8 ROJO→VERDE `OrdenesUnitOfWork(session)`: `ordenes`, `historial`, `estados`, `vehiculos`, `roles` y `repuestos` comparten la sesión; `repuestos` es `SoftDeleteRepository` de `Repuesto` (provisorio hasta CH-07, D2); `get_ordenes_uow` lo construye
-- [ ] 3.9 Commit: `feat(ordenes): repositorios de órdenes, historial y UoW del módulo`
+- [x] 3.9 Commit: `feat(ordenes): repositorios de órdenes, historial y UoW del módulo` (agrupado en los commits de feat/ordenes)
 
 ## 4. Alta de una orden (RN-10, RN-16, RN-19) — C-10
 
@@ -45,8 +45,8 @@
 - [x] 4.4 ROJO→VERDE total que no entra en NUMERIC(12,2) (precio subido por SQL + cantidades grandes) → 409 `TotalExcedido`, no 500, sin filas
 - [x] 4.5 ROJO→VERDE catálogo vacío: test de servicio sobre `helpers.escenario(conexion, catalogo=False)` → `CatalogoVacio`; y por la ruta el router lo traduce a 409 con mensaje propio (D10)
 - [x] 4.6 ROJO→VERDE permisos y contrato por la ruta: MECANICO y CLIENTE → 403 sin filas; cuerpo con `total` → 422; C-01: no aplica (sin `{id}`)
-- [ ] 4.7 `test/C-10_alta_de_orden.http`: login de recepción, alta con dos ítems (201 esperado en comentario) y alta con repuesto inexistente (409); correrlo contra el servidor real tras `python seed.py`
-- [ ] 4.8 Commit: `feat(ordenes): alta de orden en un solo bloque (C-10)`
+- [x] 4.7 `test/C-10_alta_de_orden.http`: login de recepción, alta con dos ítems (201 esperado en comentario) y alta con repuesto inexistente (409); correrlo contra el servidor real tras `python seed.py` — corrido contra el servidor real (36/36 OK)
+- [x] 4.8 Commit: `feat(ordenes): alta de orden en un solo bloque (C-10)` (agrupado en los commits de feat/ordenes)
 
 ## 5. Consultas: detalle, listado y órdenes propias — C-06, C-15, C-17
 
@@ -57,15 +57,15 @@
 - [x] 5.5 ROJO→VERDE `GET /mis-ordenes`: Laura → sólo la orden 1, sin rol de personal; recepción → página vacía; `page=2` → 422
 - [x] 5.6 ROJO→VERDE C-06 completo: sin cookie, las ocho rutas de órdenes y catálogo → 401; Laura → 403 en `GET /ordenes` y `POST /ordenes`; Laura → 200 en `/mis-ordenes` y `/auth/yo`; `nuevo@example.com` (cambio pendiente) → 403 en `GET /ordenes`
 - [x] 5.7 ROJO→VERDE C-01: `GET /ordenes/abc` y `GET /ordenes/3000000000` con sesión → 422 sin ejecutar el servicio (servicio espiado)
-- [ ] 5.8 `test/C-06_401_contra_403_y_lo_propio.http` (dos sesiones: Laura y recepción, `# @name` + `# @no-cookie-jar`), `test/C-15_detalle_sin_n_mas_1.http` (alta de una orden de 4 ítems y `GET` de una de 2 y otra de 4, con la nota de `SQL_ECHO=true`) y `test/C-17_catalogo_y_filtro.http`; agregar una línea de órdenes a `test/C-01_parametro_no_entero.http`; correrlos contra el servidor real
-- [ ] 5.9 Commit: `feat(ordenes): detalle sin N+1, listados y órdenes propias (C-06, C-15, C-17)`
+- [x] 5.8 `test/C-06_401_contra_403_y_lo_propio.http` (dos sesiones: Laura y recepción, `# @name` + `# @no-cookie-jar`), `test/C-15_detalle_sin_n_mas_1.http` (alta de una orden de 4 ítems y `GET` de una de 2 y otra de 4, con la nota de `SQL_ECHO=true`) y `test/C-17_catalogo_y_filtro.http`; agregar una línea de órdenes a `test/C-01_parametro_no_entero.http`; correrlos contra el servidor real — corrido contra el servidor real (36/36 OK)
+- [x] 5.9 Commit: `feat(ordenes): detalle sin N+1, listados y órdenes propias (C-06, C-15, C-17)` (agrupado en los commits de feat/ordenes)
 
 ## 6. Iniciar una orden (RN-11, SU-03)
 
 - [x] 6.1 ROJO→VERDE `tests/test_ordenes_transiciones.py` `POST /ordenes/1/iniciar` como `mecanico2@`: 200, EN_REPARACION, `mecanico_id` 5 y línea PENDIENTE → EN_REPARACION con `usuario_id` 5
 - [x] 6.2 ROJO→VERDE orden 2 (EN_REPARACION) → 409 sin línea nueva; inexistente → 404; ADMIN sin MECANICO → 403 y la orden sigue PENDIENTE; recepción → 403
 - [x] 6.3 ROJO→VERDE C-01 en `/ordenes/abc/iniciar` → 422
-- [ ] 6.4 Commit: `feat(ordenes): iniciar orden`
+- [x] 6.4 Commit: `feat(ordenes): iniciar orden` (agrupado en los commits de feat/ordenes)
 
 ## 7. Cancelar una orden (RN-12, RN-17) — C-13
 
@@ -73,8 +73,8 @@
 - [x] 7.2 ROJO→VERDE recepción y ADMIN cancelan una PENDIENTE de Jorge (insertada para el test) → 200
 - [x] 7.3 ROJO→VERDE permiso antes que estado: Laura sobre la orden 2 (ajena y EN_REPARACION) → 403, no 409; mecánico sobre una PENDIENTE → 403
 - [x] 7.4 ROJO→VERDE estado: recepción sobre una orden TERMINADA (insertada por SQL) → 409; sobre la orden 2 (EN_REPARACION) → 409; en ambos casos sin línea nueva; inexistente → 404; `/ordenes/abc/cancelar` → 422
-- [ ] 7.5 `test/C-13_cancelar_orden.http` (sesiones de Laura y de recepción): el dueño cancela la orden 1 → 200; la orden 2 (ajena) → 403. El tramo "terminada → 409" necesita terminar una orden por la API y se agrega en 9.9. Correrlo contra el servidor real
-- [ ] 7.6 Commit: `feat(ordenes): cancelar orden con 403 antes que 409 (C-13)`
+- [x] 7.5 `test/C-13_cancelar_orden.http` (sesiones de Laura y de recepción): el dueño cancela la orden 1 → 200; la orden 2 (ajena) → 403. El tramo "terminada → 409" necesita terminar una orden por la API y se agrega en 9.9. Correrlo contra el servidor real — corrido contra el servidor real (36/36 OK)
+- [x] 7.6 Commit: `feat(ordenes): cancelar orden con 403 antes que 409 (C-13)` (agrupado en los commits de feat/ordenes)
 
 ## 8. Terminar: permiso, estado y 404 (sin tocar stock)
 
@@ -82,7 +82,7 @@
 - [x] 8.2 ROJO→VERDE 403 antes que 409: `mecanico2@` sobre la orden 1 (PENDIENTE, sin asignar) → 403
 - [x] 8.3 ROJO→VERDE ADMIN sobre la orden 1 (PENDIENTE) → 409 sin cambios; inexistente → 404; `/ordenes/abc/terminar` → 422
 - [x] 8.4 Esqueleto de `terminar_orden` en el servicio hasta las comprobaciones (permiso → estado); el paso de stock queda marcado `# CH-07` y no se ejecuta en ningún test de este grupo
-- [ ] 8.5 Commit: `feat(ordenes): terminar orden — permisos y estado`
+- [x] 8.5 Commit: `feat(ordenes): terminar orden — permisos y estado` (agrupado en los commits de feat/ordenes)
 
 ## 9. BLOQUEADO POR CH-07 — Terminar con descuento de stock (RN-13, RN-14, DD-14) — C-11, C-12
 
@@ -95,8 +95,8 @@
 - [x] 9.7 ROJO→VERDE aviso (D11): con terminar exitoso, el mensaje de `taller.avisos` aparece después del `http.response.body` final (app ASGI con `send` espiado, `asyncio.sleep` sin espera); con 409 (C-11) y con 403 no aparece (`caplog`)
 - [x] 9.8 ROJO→VERDE ciclo completo: crear → iniciar → terminar deja 3 líneas de historial en orden
 - [x] 9.8b ROJO→VERDE concurrencia: dos órdenes distintas con el mismo repuesto terminadas a la vez (stock para una sola → 200 y 409, stock inicial − N, un solo movimiento negativo; stock para ambas → dos 200 y dos descuentos); `OrdenRepository.bloquear_repuestos` con `FOR UPDATE` ordenado por id (D6)
-- [ ] 9.9 `test/C-11_stock_insuficiente.http` y `test/C-12_reponer_y_terminar.http` (sesiones de ADMIN y de mecánico); completar el caso "terminada → 409" de `test/C-13_cancelar_orden.http`; correrlos contra el servidor real y ver el aviso en la consola después de la respuesta
-- [ ] 9.10 Commit: `feat(ordenes): terminar orden con descuento de stock y aviso (C-11, C-12)`
+- [x] 9.9 `test/C-11_stock_insuficiente.http` y `test/C-12_reponer_y_terminar.http` (sesiones de ADMIN y de mecánico); completar el caso "terminada → 409" de `test/C-13_cancelar_orden.http`; correrlos contra el servidor real y ver el aviso en la consola después de la respuesta — corrido contra el servidor real (36/36 OK)
+- [x] 9.10 Commit: `feat(ordenes): terminar orden con descuento de stock y aviso (C-11, C-12)` (agrupado en los commits de feat/ordenes)
 
 ## 10. Cierre e integración
 
