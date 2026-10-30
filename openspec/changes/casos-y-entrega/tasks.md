@@ -48,24 +48,24 @@ Governance BAJO: consolidación y documentación, sin lógica nueva. No se reesc
 
 ## 6. Casos de órdenes
 
-- [ ] 6.1 Actualizar la rama con `main` (CH-08 incluido) y confirmar que `ordenes` está activa en `main.py`; verificar con `git log --oneline` y `GET /openapi.json`
-- [ ] 6.2 Verificar que existen en `test/` los `.http` de C-06, C-10, C-11, C-12, C-13 y C-17 con su respuesta esperada en comentario; si falta alguno, listarlo con el dueño (Elías) sin escribirlo
-- [ ] 6.3 Correr cada uno con `python seed.py` antes (C-12 y C-13 dependen de reponer y terminar la orden 2) y anotar los resultados en `resultados-fase-b.md`; verificar las 6 filas con esperado y obtenido
-- [ ] 6.4 Correr de nuevo la suite `pytest` completa y anotar el resultado; verificar que está en verde
+- [x] 6.1 Actualizar la rama con `main` (CH-08 incluido) y confirmar que `ordenes` está activa en `main.py`; verificar con `git log --oneline` y `GET /openapi.json`
+- [x] 6.2 Verificar que existen en `test/` los `.http` de C-06, C-10, C-11, C-12, C-13 y C-17 con su respuesta esperada en comentario; si falta alguno, listarlo con el dueño (Elías) sin escribirlo
+- [x] 6.3 Correr cada uno con `python seed.py` antes (C-12 y C-13 dependen de reponer y terminar la orden 2) y anotar los resultados en `resultados-fase-b.md`; verificar las 6 filas con esperado y obtenido
+- [x] 6.4 Correr de nuevo la suite `pytest` completa y anotar el resultado; verificar que está en verde
 
 ## 7. Evidencia de C-15 y corrida completa
 
-- [ ] 7.1 Levantar el servidor con `SQL_ECHO=true`, crear con los endpoints reales una orden de 2 ítems y otra de 4, pedir el detalle de cada una y guardar los dos fragmentos de consola en `docs/evidencias/C-15_consola.txt`; verificar que cuentan las mismas consultas
-- [ ] 7.2 Correr de nuevo C-01 a C-19 completos, cada uno con `python seed.py` antes, y consolidar las 19 filas en `resultados-fase-b.md`; verificar que ningún caso queda "pendiente"
-- [ ] 7.3 Repetir `solo_agregado.sql` con la base de la corrida final; verificar que sigue dando siete errores
+- [x] 7.1 Levantar el servidor con `SQL_ECHO=true`, crear con los endpoints reales una orden de 2 ítems y otra de 4, pedir el detalle de cada una y guardar los dos fragmentos de consola en `docs/evidencias/C-15_consola.txt`; verificar que cuentan las mismas consultas
+- [x] 7.2 Correr de nuevo C-01 a C-19 completos, cada uno con `python seed.py` antes, y consolidar las 19 filas en `resultados-fase-b.md`; verificar que ningún caso queda "pendiente"
+- [x] 7.3 Repetir `solo_agregado.sql` con la base de la corrida final; verificar que sigue dando siete errores
 
 ## 8. Verificación final y archivado
 
-- [ ] 8.1 Recorrer RN-01..RN-20 contra el código y su evidencia (test, caso C o consulta) en `docs/evidencias/verificacion-rn.md` (RN-15 con C-14; RN-19 y el diseño sin N+1 con C-15); verificar las 20 filas y listar los hallazgos con dueño
-- [ ] 8.2 Revisar que cada PR de los cinco integrantes tiene su aprobación (evidencia para la demo, AP-07) con `gh pr list --state merged` y anotar los que no; verificar que cada PR figura en el registro
-- [ ] 8.3 Archivar `autorizacion-y-roles` con `/opsx:archive`; verificar que pasa a `openspec/changes/archive/` y sus specs se sincronizan en `openspec/specs/`
-- [ ] 8.4 Archivar `repuestos-y-stock` con `/opsx:archive`; verificar lo mismo
-- [ ] 8.5 Archivar `ordenes` con `/opsx:archive`; verificar lo mismo
+- [x] 8.1 Recorrer RN-01..RN-20 contra el código y su evidencia (test, caso C o consulta) en `docs/evidencias/verificacion-rn.md` (RN-15 con C-14; RN-19 y el diseño sin N+1 con C-15); verificar las 20 filas y listar los hallazgos con dueño
+- [x] 8.2 Revisar que cada PR de los cinco integrantes tiene su aprobación (evidencia para la demo, AP-07) con `gh pr list --state merged` y anotar los que no; verificar que cada PR figura en el registro
+- [x] 8.3 Archivar `autorizacion-y-roles` con `/opsx:archive`; verificar que pasa a `openspec/changes/archive/` y sus specs se sincronizan en `openspec/specs/`
+- [x] 8.4 Archivar `repuestos-y-stock` con `/opsx:archive`; verificar lo mismo
+- [x] 8.5 Archivar `ordenes` con `/opsx:archive`; verificar lo mismo
 - [ ] 8.6 Actualizar la bitácora de Belén y marcar CH-09 como hecho en `CHANGES.md` (campo Estado); verificar que `openspec list` ya no muestra changes pendientes salvo este
 
 ## Workflow follow-up
