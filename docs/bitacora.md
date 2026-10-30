@@ -73,19 +73,26 @@ Cada integrante anota en su sección las decisiones que tomó trabajando con el 
 
 **Decisiones del design aprobadas:** D4, `asignacion_rol.otorgada_por` es FK a `usuario.id` (NULL = lo otorgó el sistema); D5, relaciones en los dos extremos con `lazy="raise"` (hay que precargar con `selectinload`/`joinedload`); D6, el registro `app/modules/modelos.py` y su import en `main.py`; D9, trigger por sentencia y `TRUNCATE` permitido (ver arriba). Además: `intento_acceso.ip` es texto y las revisiones se llaman `0001` y `0002`.
 
-### 2026-10-29 · CH-09 casos-y-entrega (Fase A)
-- **Fecha:** 2026-10-29
-- **Qué le pidió al agente:** armar el change `casos-y-entrega` en dos fases (Fase A con CH-01 a CH-07 mergeados; Fase B cuando entre CH-08) y aplicar la Fase A: correr los 11 `.http` disponibles después de `python seed.py`, preparar la evidencia de C-14 en psql, escribir el README con los pasos desde cero y probarlo en `taller_readme`, hacer el checklist de entrega, revisar esta bitácora y correr la suite. Sin tocar los `.http` ni el código de mis compañeros, sin commits y sin líneas de atribución.
+### 2026-10-29 · CH-09 casos-y-entrega
+- **Fecha:** 2026-10-29 (Fase A) y 2026-10-30 (cierre)
+- **Qué le pidió al agente:**
+  - **Fase A (la hice yo):** armar el change `casos-y-entrega` en dos fases (Fase A con CH-01 a CH-07 mergeados; Fase B cuando entre CH-08) y aplicar la Fase A: correr los 11 `.http` disponibles después de `python seed.py`, preparar la evidencia de C-14 en psql, escribir el README con los pasos desde cero y probarlo en `taller_readme`, hacer el checklist de entrega, revisar esta bitácora y correr la suite. Sin tocar los `.http` ni el código de mis compañeros, sin commits y sin líneas de atribución.
+  - **Fase B (la corrió Elías en el PR #24; yo la revisé y aprobé):** corrida de C-01 a C-19, verificación de RN-01 a RN-20, evidencia de C-15 y archivado de `autorizacion-y-roles`, `repuestos-y-stock` y `ordenes`. La suite quedó en verde con 916 tests.
+  - **Cierre (esta rama):** completar esta entrada, marcar como hecho el Estado de CH-05, CH-07, CH-08 y CH-09 en `CHANGES.md` y archivar `casos-y-entrega` sincronizando sus specs. Sin tocar código ni `.http`, sin commits y sin líneas de atribución.
 - **Qué corrigió a mano y por qué:**
   - Pedí frenar después de los 11 `.http` para ver el resultado de cada caso antes de seguir con C-14 y el README.
   - Indiqué usar la base `taller_readme` que ya había creado (owner `taller`) y que el agente no creara ni borrara bases.
   - Pedí que la revisión de la bitácora sólo listara las entradas que faltan de mis compañeros, sin redactarlas por ellos.
+  - Apliqué las correcciones del review de Joaquín en el PR #21 (Fase A):
+    - Enlacé la captura de C-14 (`docs/evidencias/C-14_psql.png`) desde el README y desde `resultados-fase-a.md`, y saqué las menciones de "captura pendiente".
+    - Agregué la nota de que los acentos salen mal en la captura por la consola de Windows.
+    - Aclaré en el README que los casos de órdenes llegan con CH-08.
+  - Revisé el PR #24 de Elías (Fase B) y lo aprobé con la suite en verde (916 tests).
 
 **Notas de la sesión**
 - Resultado de la Fase A: los 11 `.http` pasan sin cambiar ninguno; C-14 da los siete errores (seis del disparador y uno de la FK) sin modificar datos. Detalle en `docs/evidencias/resultados-fase-a.md` y `docs/evidencias/C-14_salida_psql.txt`. La captura de psql está en `docs/evidencias/C-14_psql.png`. Suite `pytest` sobre `taller_test`: 761 passed, y la base queda vacía.
 - Los pendientes que había anotado para este change pasaron al README (`.env` propio, usuario y bases `taller` y `taller_test`, generación de la clave de firma, comandos desde la raíz del repo, orden `alembic upgrade head` → `python seed.py`, C-14 y `taller_test` vacía tras la suite).
-- **Pendiente de aviso a Hernán (CH-04):** el contrato `app.state.hash_ficticio` / `app.state.bcrypt_semaforo` y el cambio de bcrypt 5.x con más de 72 bytes (el README lo menciona en las notas).
-- **Fase B pendiente** (cuando se mergee CH-08): C-06, C-10 a C-13, C-15 y C-17, evidencia de C-15, verificación de RN-01 a RN-20 y archivado de `autorizacion-y-roles`, `repuestos-y-stock` y `ordenes`.
+- **Fase B (PR #24, Elías):** corrida de C-01 a C-19 sobre `main`, verificación de RN-01 a RN-20, evidencia de C-15 y archivado de `autorizacion-y-roles`, `repuestos-y-stock` y `ordenes`. Detalle en `docs/evidencias/resultados-fase-b.md` y `docs/evidencias/verificacion-rn.md`. Suite `pytest`: 916 tests en verde.
 
 ## Elías
 
