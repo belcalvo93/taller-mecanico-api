@@ -4,7 +4,11 @@ Cada función recibe el Unit of Work ya construido por el router y lo abre con
 `async with`; nunca lo construye ni confirma por su cuenta (regla 14). Lanza
 errores de dominio: el router los traduce a HTTP con mensajes propios.
 """
+import asyncio
+import logging
 from decimal import Decimal
+
+from sqlalchemy.exc import IntegrityError
 
 from app.core.paginacion import Pagina, ParametrosPagina
 from app.modules.ordenes.models import EstadoOrden, HistorialEstadoOrden, ItemOrden, OrdenTrabajo
@@ -17,9 +21,21 @@ from app.modules.ordenes.schemas import (
     armar_resumen,
 )
 from app.modules.ordenes.unit_of_work import OrdenesUnitOfWork
+from app.modules.repuestos.repository import StockInsuficiente as StockInsuficienteRepuesto
 
 # Quienes ven cualquier orden (RN-17): el resto sólo ve las de sus vehículos.
 ROLES_DE_PERSONAL = frozenset({"RECEPCION", "ADMIN", "MECANICO"})
+
+# Restricción de la base que es la segunda línea de defensa del stock (design D4).
+CK_STOCK_NO_NEGATIVO = "ck_repuesto_stock_no_negativo"
+
+logger = logging.getLogger("taller.avisos")
+if logger.level == logging.NOTSET:
+    logger.setLevel(logging.INFO)
+if not logger.handlers:
+    # uvicorn no configura el logger raíz: sin esto el aviso no se vería en la consola.
+    # `propagate` queda activo para que caplog lo capture en los tests (design D11).
+    logger.addHandler(logging.StreamHandler())
 
 # Máximo de NUMERIC(12,2): más allá el INSERT daría un error numérico (500, RN-18).
 TOTAL_MAXIMO = Decimal("9999999999.99")
@@ -55,6 +71,22 @@ class RepuestoNoDisponible(Exception):
 
 class TotalExcedido(Exception):
     pass
+
+
+class StockInsuficiente(Exception):
+    """No alcanza el stock de algún ítem: terminar no escribe nada (C-11)."""
+
+    def __init__(self, codigo: str | None = None) -> None:
+        self.mensaje = (
+            f"No hay stock suficiente de {codigo}" if codigo else "No hay stock suficiente"
+        )
+        super().__init__(self.mensaje)
+
+
+def _restriccion_violada(exc: IntegrityError) -> str | None:
+    causa = getattr(exc, "orig", None)
+    causa = getattr(causa, "__cause__", None) or causa
+    return getattr(causa, "constraint_name", None)
 
 
 async def listar_estados(uow: OrdenesUnitOfWork) -> list[EstadoOrden]:
@@ -198,19 +230,43 @@ async def cancelar_orden(uow: OrdenesUnitOfWork, usuario_id: int, orden_id: int)
 
 
 async def terminar_orden(uow: OrdenesUnitOfWork, usuario_id: int, orden_id: int) -> OrdenDetalle:
-    """RN-11, RN-13, RN-14: EN_REPARACION → TERMINADA descontando stock, todo en un
-    solo bloque. Permiso (mecánico asignado o ADMIN) ANTES que estado."""
-    async with uow:
-        orden = await _orden_para_transicion(uow, orden_id)
-        roles = await uow.roles.listar_roles_vigentes(usuario_id)
-        if "ADMIN" not in roles and orden.mecanico_id != usuario_id:
-            raise SinPermisoSobreOrden
-        if orden.estado != EstadoOrdenCodigo.EN_REPARACION:
-            raise TransicionInvalida(orden.estado, "terminar")
-        # CH-07: acá va el descuento de stock por el punto único de escritura
-        # (design D4), un movimiento por ítem, ordenado por repuesto_id. Hasta que
-        # CH-07 esté en main esto NO puede terminar la orden sin descontar: falla
-        # (el bloque revierte) en vez de dejar una orden TERMINADA sin stock.
-        raise NotImplementedError("CH-07: falta el punto único de escritura de stock")
-        await _pasar_a(uow, orden, EstadoOrdenCodigo.TERMINADA, usuario_id)  # pragma: no cover
+    """RN-11, RN-13, RN-14: EN_REPARACION → TERMINADA descontando stock, todo en UN
+    solo bloque (RN-13). Permiso (mecánico asignado o ADMIN) ANTES que estado.
+
+    Si algún ítem no tiene stock, el bloque revierte entero: estado, stock, movimientos
+    e historial quedan como estaban (C-11). Los errores de stock se traducen FUERA del
+    bloque, ya con la transacción deshecha."""
+    try:
+        async with uow:
+            orden = await _orden_para_transicion(uow, orden_id)
+            roles = await uow.roles.listar_roles_vigentes(usuario_id)
+            if "ADMIN" not in roles and orden.mecanico_id != usuario_id:
+                raise SinPermisoSobreOrden
+            if orden.estado != EstadoOrdenCodigo.EN_REPARACION:
+                raise TransicionInvalida(orden.estado, "terminar")
+            # Por repuesto_id: dos terminaciones simultáneas toman los bloqueos de fila
+            # en el mismo orden (design D6). Un movimiento por ítem, por el único punto
+            # de escritura de stock (RN-14). Con repuestos dados de baja también (DD-14).
+            for item in sorted(orden.items, key=lambda i: i.repuesto_id):
+                repuesto = await uow.repuestos.get_by_id_including_deleted(item.repuesto_id)
+                await uow.repuestos.mover_stock(
+                    repuesto, -item.cantidad, motivo=f"Orden {orden.id} terminada",
+                    usuario_id=usuario_id, orden_id=orden.id,
+                )
+            await _pasar_a(uow, orden, EstadoOrdenCodigo.TERMINADA, usuario_id)
+    except StockInsuficienteRepuesto as exc:
+        raise StockInsuficiente(exc.codigo) from None
+    except IntegrityError as exc:
+        # Segunda línea de defensa: el CHECK de la base frenó lo que el control en
+        # Python no vio (por nombre de restricción, como CH-06). Nada de texto de la base.
+        if _restriccion_violada(exc) == CK_STOCK_NO_NEGATIVO:
+            raise StockInsuficiente from None
+        raise
     return await _detalle(uow, orden_id)
+
+
+async def avisar_cliente(orden_id: int, cliente: str, patente: str) -> None:
+    """Aviso simulado al cliente (design D11). Corre DESPUÉS de enviada la respuesta
+    (BackgroundTasks) y sólo si terminar confirmó: nunca demora ni rompe la respuesta."""
+    await asyncio.sleep(0.5)
+    logger.info("Aviso a %s: su vehículo %s (orden %s) está listo para retirar", cliente, patente, orden_id)

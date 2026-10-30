@@ -18,6 +18,7 @@ from app.modules.ordenes.repository import (
 )
 from app.modules.ordenes.unit_of_work import OrdenesUnitOfWork, get_ordenes_uow
 from app.modules.repuestos.models import Repuesto
+from app.modules.repuestos.repository import RepuestoRepository
 from app.modules.usuarios.repository import AsignacionRolRepository
 from tests.ordenes_comun import crear_orden
 
@@ -182,8 +183,9 @@ async def test_el_uow_comparte_la_sesion_y_compone_los_repositorios(sembrada, se
         assert isinstance(uow.estados, EstadoOrdenRepository)
         assert isinstance(uow.vehiculos, VehiculoRepository)
         assert isinstance(uow.roles, AsignacionRolRepository)
-        # provisorio hasta CH-07 (design D2)
-        assert isinstance(uow.repuestos, SoftDeleteRepository) and uow.repuestos.modelo is Repuesto
+        # el repositorio real de CH-07, con el punto único de stock (design D2)
+        assert isinstance(uow.repuestos, RepuestoRepository) and uow.repuestos.modelo is Repuesto
+        assert isinstance(uow.repuestos, SoftDeleteRepository)
         for repo in (uow.ordenes, uow.historial, uow.estados, uow.vehiculos, uow.roles, uow.repuestos):
             assert repo.session is s
         assert uow.session is s

@@ -8,14 +8,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
 from app.core.unit_of_work import UnitOfWork
-from app.core.repository import SoftDeleteRepository
 from app.modules.clientes.repository import VehiculoRepository
 from app.modules.ordenes.repository import (
     EstadoOrdenRepository,
     HistorialEstadoOrdenRepository,
     OrdenRepository,
 )
-from app.modules.repuestos.models import Repuesto
+from app.modules.repuestos.repository import RepuestoRepository
 from app.modules.usuarios.repository import AsignacionRolRepository
 
 
@@ -27,10 +26,8 @@ class OrdenesUnitOfWork(UnitOfWork):
         self.estados = EstadoOrdenRepository(session)
         self.vehiculos = VehiculoRepository(session)
         self.roles = AsignacionRolRepository(session)
-        # PROVISORIO hasta que CH-07 mergee (design D2): el genérico ya ofrece lo que
-        # usan crear (get_by_id) y terminar (get_by_id_including_deleted). Al llegar
-        # CH-07 se cambia SOLO esta línea por RepuestoRepository(session).
-        self.repuestos = SoftDeleteRepository(session, Repuesto)
+        # crear usa get_by_id; terminar usa get_by_id_including_deleted y mover_stock (CH-07).
+        self.repuestos = RepuestoRepository(session)
 
 
 def get_ordenes_uow(session: AsyncSession = Depends(get_session)) -> OrdenesUnitOfWork:

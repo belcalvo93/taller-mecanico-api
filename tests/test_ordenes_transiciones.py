@@ -1,8 +1,8 @@
 """CH-08 grupos 6, 7 y 8: iniciar, cancelar (C-13) y terminar (sólo permiso y estado).
 
 Sesión real (login). Orden 1 PENDIENTE (vehículo 1, de Laura); orden 2 EN_REPARACION
-(vehículo 3, de Jorge, mecánico 4). El descuento de stock de terminar es del grupo 9
-(bloqueado por CH-07): acá ninguna prueba llega a ese paso.
+(vehículo 3, de Jorge, mecánico 4). El descuento de stock de terminar está en
+`test_ordenes_terminar.py` (grupo 9): acá ninguna prueba llega a ese paso.
 """
 import pytest
 from sqlalchemy import text

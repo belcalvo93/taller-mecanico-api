@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path, Query, status
 
 from app.core.dependencies import get_usuario_actual, requiere_rol
 from app.core.paginacion import Pagina, ParametrosPagina, parametros_pagina
@@ -44,6 +44,9 @@ _ERRORES: dict[type[Exception], tuple[int, str]] = {
     ),
     service.RepuestoNoDisponible: (
         status.HTTP_409_CONFLICT, "Algún repuesto no existe o fue dado de baja",
+    ),
+    service.StockInsuficiente: (
+        status.HTTP_409_CONFLICT, "No hay stock suficiente para terminar la orden",
     ),
     service.TotalExcedido: (
         status.HTTP_409_CONFLICT, "El total de la orden supera el máximo permitido",
@@ -146,11 +149,18 @@ async def iniciar_orden(
     "/ordenes/{id}/terminar", response_model=OrdenDetalle, responses=_respuestas(401, 403, 404, 409),
 )
 async def terminar_orden(
-    id: IdRuta, uow: Uow, usuario: Usuario = Depends(requiere_rol("MECANICO", "ADMIN"))
+    id: IdRuta,
+    uow: Uow,
+    background_tasks: BackgroundTasks,
+    usuario: Usuario = Depends(requiere_rol("MECANICO", "ADMIN")),
 ):
     """Mecánico asignado o ADMIN; el servicio decide cuál (403 antes que 409)."""
     with _traducir_errores():
-        return await service.terminar_orden(uow, usuario.id, id)
+        detalle = await service.terminar_orden(uow, usuario.id, id)
+    # Sólo se agenda si terminar confirmó (cualquier error salió por la excepción de
+    # arriba); Starlette lo ejecuta después de enviar la respuesta (D11).
+    background_tasks.add_task(service.avisar_cliente, detalle.id, detalle.cliente, detalle.patente)
+    return detalle
 
 
 @router.post(

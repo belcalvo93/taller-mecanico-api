@@ -86,14 +86,14 @@
 
 ## 9. BLOQUEADO POR CH-07 — Terminar con descuento de stock (RN-13, RN-14, DD-14) — C-11, C-12
 
-- [ ] 9.1 Rebasear `feat/ordenes` sobre `main` con CH-07 mergeado; correr la suite completa y comparar con la línea base
-- [ ] 9.2 Reemplazar en `OrdenesUnitOfWork` el `SoftDeleteRepository(session, Repuesto)` por `RepuestoRepository(session)`; los tests de los grupos 3 a 8 siguen verdes
-- [ ] 9.3 ROJO→VERDE `tests/test_ordenes_terminar.py` C-12: reponer bujías (por el punto único de CH-07 o `POST /repuestos/3/reponer`) y terminar la orden 2 como `mecanico@` → 200, TERMINADA; stock de BUJ-100 baja 4; un movimiento −4 con `orden_id` 2; línea EN_REPARACION → TERMINADA con `usuario_id` 4
-- [ ] 9.4 ROJO→VERDE un movimiento por ítem: orden de 2 ítems terminada por ADMIN → exactamente 2 movimientos nuevos con las cantidades negativas y la línea de historial con el id del ADMIN
-- [ ] 9.5 ROJO→VERDE C-11: terminar la orden 2 sin reponer → 409 con mensaje propio; estado EN_REPARACION, stock 2, cantidad de movimientos e historial iguales; cubrir la excepción de dominio de CH-07 y el `IntegrityError` de `ck_repuesto_stock_no_negativo` (D4)
-- [ ] 9.6 ROJO→VERDE DD-14: dar de baja el repuesto de un ítem y terminar la orden con stock suficiente → 200 y el stock baja
-- [ ] 9.7 ROJO→VERDE aviso (D11): con terminar exitoso, el mensaje de `taller.avisos` aparece después del `http.response.body` final (app ASGI con `send` espiado, `asyncio.sleep` sin espera); con 409 (C-11) y con 403 no aparece (`caplog`)
-- [ ] 9.8 ROJO→VERDE ciclo completo: crear → iniciar → terminar deja 3 líneas de historial en orden
+- [x] 9.1 Rebasear `feat/ordenes` sobre `main` con CH-07 mergeado; correr la suite completa y comparar con la línea base
+- [x] 9.2 Reemplazar en `OrdenesUnitOfWork` el `SoftDeleteRepository(session, Repuesto)` por `RepuestoRepository(session)`; los tests de los grupos 3 a 8 siguen verdes
+- [x] 9.3 ROJO→VERDE `tests/test_ordenes_terminar.py` C-12: reponer bujías (por el punto único de CH-07 o `POST /repuestos/3/reponer`) y terminar la orden 2 como `mecanico@` → 200, TERMINADA; stock de BUJ-100 baja 4; un movimiento −4 con `orden_id` 2; línea EN_REPARACION → TERMINADA con `usuario_id` 4
+- [x] 9.4 ROJO→VERDE un movimiento por ítem: orden de 2 ítems terminada por ADMIN → exactamente 2 movimientos nuevos con las cantidades negativas y la línea de historial con el id del ADMIN
+- [x] 9.5 ROJO→VERDE C-11: terminar la orden 2 sin reponer → 409 con mensaje propio; estado EN_REPARACION, stock 2, cantidad de movimientos e historial iguales; cubrir la excepción de dominio de CH-07 y el `IntegrityError` de `ck_repuesto_stock_no_negativo` (D4)
+- [x] 9.6 ROJO→VERDE DD-14: dar de baja el repuesto de un ítem y terminar la orden con stock suficiente → 200 y el stock baja
+- [x] 9.7 ROJO→VERDE aviso (D11): con terminar exitoso, el mensaje de `taller.avisos` aparece después del `http.response.body` final (app ASGI con `send` espiado, `asyncio.sleep` sin espera); con 409 (C-11) y con 403 no aparece (`caplog`)
+- [x] 9.8 ROJO→VERDE ciclo completo: crear → iniciar → terminar deja 3 líneas de historial en orden
 - [ ] 9.9 `test/C-11_stock_insuficiente.http` y `test/C-12_reponer_y_terminar.http` (sesiones de ADMIN y de mecánico); completar el caso "terminada → 409" de `test/C-13_cancelar_orden.http`; correrlos contra el servidor real y ver el aviso en la consola después de la respuesta
 - [ ] 9.10 Commit: `feat(ordenes): terminar orden con descuento de stock y aviso (C-11, C-12)`
 
